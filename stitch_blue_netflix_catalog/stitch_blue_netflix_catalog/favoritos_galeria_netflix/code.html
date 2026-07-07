@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Hide scrollbars but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphism custom blur */
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Hero gradient for content visibility */
+        .content-fade-right {
+            mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        }
+
+        /* Smooth scaling for photo cards */
+        .photo-card {
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .photo-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 25px rgba(173, 198, 255, 0.3);
+            border-color: rgba(173, 198, 255, 0.6);
+        }
+
+        body {
+            background-color: #0c1324;
+            margin: 0;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#2e3447",
+                        "outline": "#8b90a0",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary-fixed": "#d6e3ff",
+                        "surface-container-lowest": "#070d1f",
+                        "surface-container-low": "#151b2d",
+                        "on-tertiary-container": "#00226e",
+                        "surface": "#0c1324",
+                        "secondary-container": "#3c4962",
+                        "tertiary-container": "#748de1",
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#b9c7e4",
+                        "surface-variant": "#2e3447",
+                        "background": "#0c1324",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-surface-variant": "#c1c6d7",
+                        "on-surface": "#dce1fb",
+                        "surface-tint": "#adc6ff",
+                        "surface-dim": "#0c1324",
+                        "primary-container": "#4b8eff",
+                        "on-background": "#dce1fb",
+                        "on-primary": "#002e69",
+                        "surface-container-high": "#23293c",
+                        "inverse-on-surface": "#2a3043",
+                        "tertiary-fixed": "#dce1ff",
+                        "on-primary-fixed": "#001a41",
+                        "error": "#ffb4ab",
+                        "tertiary": "#b6c4ff",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#abb9d6",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-tertiary-fixed-variant": "#264191",
+                        "on-primary-container": "#00285c",
+                        "on-tertiary-fixed": "#00164e",
+                        "on-primary-fixed-variant": "#004493",
+                        "outline-variant": "#414755",
+                        "primary": "#adc6ff",
+                        "secondary-fixed-dim": "#b9c7e4",
+                        "surface-container": "#191f31",
+                        "on-secondary-fixed": "#0d1c32",
+                        "surface-bright": "#33394c",
+                        "inverse-primary": "#005bc1",
+                        "tertiary-fixed-dim": "#b6c4ff",
+                        "on-tertiary": "#05297a",
+                        "on-secondary": "#233148",
+                        "inverse-surface": "#dce1fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "mobile-margin": "1rem",
+                        "page-margin": "4rem",
+                        "gutter": "0.75rem",
+                        "row-gap": "2.5rem"
+                    },
+                    "fontFamily": {
+                        "hidden": ["Inter"]
+                    },
+                    "fontSize": {
+                        "hidden": ["0px", { "lineHeight": "0px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full bg-transparent bg-gradient-to-b from-surface-container-lowest to-transparent flex justify-between items-center px-mobile-margin h-16 z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary font-black hover:scale-110 transition-transform cursor-pointer" data-icon="lens">lens</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-tertiary hover:scale-110 transition-transform cursor-pointer" data-icon="search">search</span>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant hover:scale-110 transition-transform cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A cinematic, low-key close up portrait of a sophisticated person with deep blue lighting accents and soft bokeh background, matching the minimalist obsidian blue aesthetic of the UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrz2RMBS6zrSfWMSetLXw5ZUhFNahcrNObAfRmvSbGJOshO83Q1B0rAAzkixOMt_oAnshdNz3BbtcVggONld2x8VsYmFvcDm2M-SHUWy9U82xz81AqMGbw2xCw5O0YVitoOCZIJANMXE65TynUX1Zzdl-NpHYBdDiTH211p-tPnudDkSRT0dYm4lB_p4n3J2gqsoPgxK2pt17JiMVN46bXo8CKHtYhQ6rqa4xUHTmwWu-jjpRUi29Z"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-24 pb-32 min-h-screen px-gutter md:px-page-margin space-y-row-gap">
+<!-- Feature Hero Section (The Most Recent Favorite) -->
+<section class="relative w-full h-[530px] rounded-xl overflow-hidden group mb-12">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110" data-alt="A high-end cinematic wide landscape of a serene coastal architecture at twilight. Deep obsidian blues and vibrant azure glows reflect off glass surfaces. The mood is intimate, minimalist, and expensive, fitting a luxury photo collection aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuARXSnZQdtMrn_kFyJIr7t6BKXBAllY6YXcsYAwo3GeGFsJ95QzhgaGTr0J7PXuWhMV50GXKUtPFoBxipGTsCGV1sTQOheHCaM4V-nlCYjaRIRs6mGvF5To8olA95s5tHfk1vPkg8sBmIlqm2bnjhuF9rY39VA0BcEoI7hQcgkC4EEf61Aj5LuQP1u8mGKkTdDBOduiyhmDw9lSgaJkBGxOk3zVVIvDHYrLicsH7xq2peUgIPhwDBFk')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<div class="absolute bottom-8 left-8 flex items-center gap-4">
+<button class="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-all duration-300 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-14 h-14 rounded-full bg-surface-container-highest/60 backdrop-blur-md text-primary flex items-center justify-center border border-primary/20 active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+</section>
+<!-- Chapter 1: Recent Favorites (Portrait Cards) -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<!-- Intentional absence of text, space used as divider -->
+<div class="h-1 w-12 bg-primary rounded-full opacity-50"></div>
+</div>
+<div class="flex overflow-x-auto gap-4 no-scrollbar content-fade-right pb-4 px-2 -mx-2">
+<!-- Photo Card 1 -->
+<div class="photo-card flex-none w-[200px] aspect-[2/3] rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A portrait-oriented artistic shot of a misty blue forest with high-end cinematic lighting and ethereal atmosphere. Tonal layers of azure and navy. Minimalist and immersive." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2u4MqMTKSN9OZWDKZp5cGjpncgtW_o0wSUA6CO7TZF5mvotcKB3IQlBQQzsOjBa_tWP9G3KX4rut3yJyW2G8PZXQQIATuPWDsgk5NafTke68yfZ_NIf5LQKOidg3409Wr75y1xccvuadtWYFUBzgjrEjkLD0UMsbIOpFH0eUjX9fU4XJM9UVDrtCfVnN2IYr8ikW94zNm3xpPGyg6c0hK7XTwCUawHz0Ti6-C8bfzA7xZTy6TVNwN"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="material-symbols-outlined text-on-surface" data-icon="share">share</span>
+</div>
+</div>
+<!-- Photo Card 2 -->
+<div class="photo-card flex-none w-[200px] aspect-[2/3] rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="An abstract macro photography piece of crystalline structures illuminated by soft blue neon light. Sophisticated texture and depth, fitting for a curated personal collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZLmw7wfQ2VL9EwnY4WLkJk6PEvDTIwHYB1MJli-NHVpYTzcYLXBapTErK-mHww7zaP11umXp-7JD0XGxHiQEEtMPvbrWDwMiD3K5aguYp04GSsD9QCJbgGJFKW0_tUwHqFxQR2-93u0vGUp5K-O9yW9_wf4tVGkz54MHmrox_zCjH8gLJkZFdyvtrTD30ZTxc4UtLbJJIBD6-6c2hgptK537X8Yu4SLmXv-WE7kxUl_mlt0FQvhUZ"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Photo Card 3 -->
+<div class="photo-card flex-none w-[200px] aspect-[2/3] rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Cinematic street photography of a rainy city at night, reflecting blue and white light on wet pavement. High contrast, low-light, moody and emotive aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNxC4z82ekTd7FOg37SwT8LHE__8YvdoHsID1SzEi6WA6ljVAN46zNFf6KYwzRFXgS53gwx_vLlI4RLhqK3eXCFttVK3nHr0Zu_JrfmR3gcNaTSehMBpt30kcYbX8pg5aDE-qoHYBbCdQEUs5ZVHa_M7APO8VIzDjZ9yfcz_10ySiJFmVVWbSLb6vt03XLTDnZgj1s-bQ4q4Agl9fthBQA067kQCdqn-0WkOkAACcobFMGKMm6OHUU"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Photo Card 4 -->
+<div class="photo-card flex-none w-[200px] aspect-[2/3] rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Minimalist architectural details of a modern curved building against a deep twilight sky. Clean lines, geometric elegance, shades of obsidian and azure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV-lk_9vWCK-sxIQoAx7CdglQdWBQ7WgiFLaP-8fNYSEd6VTlcUfUkmGeBhGlBt6rM-3g49m-Pi0JNHwsLMxlWayr9F2sQpsaR7Vns_MhNukwDUoDTocNYJzrDPjUv7zIwqjfqjIS0zNutpP_isChB39MZWC-RZuIQbrDR5vVyMLr-DO3vg8VQ8GuqrG_6YgKA5sVReBxEuCfX6gYwXO1ySnHZjbn8Bd0hMwEai9iKgGKhEZ88ozwP"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Photo Card 5 -->
+<div class="photo-card flex-none w-[200px] aspect-[2/3] rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Ethereal portrait of a woman looking away from the camera, bathed in soft blue moonlight. Fine art photography style, high-end, intimate and evocative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB91Nv8okeKiD2sEzffQ1gqLCmbwy6WF7oDYmkRtLiHTxRzIMDe52H9-1W5hCEpuAWiW1rH7E9g5kLBlZIH6XQgl3tan23u70VE9bRwSeQAt0s-ohGx9I0fllU0lAMHLJQGM9BAtgFu4wCE2xeGHCCjY3hFTGsvwlHbX9RuIb4nYKYCpLkkWbOtgnLU-IFVTh3Mvlt-fVCJdbIi0jKUY9EY73TZ29PYZuL9SOdq0gPRBy7B3JLJOACF"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Chapter 2: Collections (Landscape Cards) -->
+<section class="space-y-4">
+<div class="h-1 w-12 bg-secondary rounded-full opacity-30"></div>
+<div class="flex overflow-x-auto gap-4 no-scrollbar content-fade-right pb-4 px-2 -mx-2">
+<!-- Photo Card 1 (Wide) -->
+<div class="photo-card flex-none w-[350px] aspect-video rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Cinematic wide shot of a futuristic library interior with glowing blue shelves. Extremely detailed, high-end architectural photography, symmetrical and peaceful." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd53dB7KX_oWkn54tJoEBVRt5swG2xqbuGDmso-uAhhfu1XKDJrmkv6MxhHWJlc4DuMFrhkmWdJ2JGgGGsuH3m4Z1MndFZr-Zxc7k5kkA2AVV0AJPCCWlwLwSyk2GJ_fOVz_ofcjpRceseXJl92bZqBdQRnsNw-3_hD6b2boW0IZRhiawqchlPBkiF5Zhwq-8eW1oJUw5O7Qp5-jdy57AWOZ_O3Rs5LgAfd01c0rNmNNgp5Y4q8tRk"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Photo Card 2 (Wide) -->
+<div class="photo-card flex-none w-[350px] aspect-video rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Stunning aerial view of glacial rivers in Iceland, deep turquoise water against dark volcanic sand. Abstract natural art, cinematic colors, professional photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0lGyg1yN95pNTCXeEG-q6MMfgPe9PXenEzzyOOzqPvIOfT8oItrmWXUe9uimM3Pnl1Jagz96YF3SVDAisBqXhM7bxxiP9ftH4QMTpyuQ4vAslM6Von14vXjWi95zN2EITgWW9Qq6BRNNfakg0GEC3GilcHRKCX0FFGm7SHez2OocvDr7tbRm-oA0bId4lOJAD0P3K__PX0LNIxpa1B5h6CGzOxIOGX7P-GN1Kx33Wh-7fApiVCFdN"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Photo Card 3 (Wide) -->
+<div class="photo-card flex-none w-[350px] aspect-video rounded-lg overflow-hidden border border-secondary/20 relative group cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="Macro cinematic shot of coffee being poured into a ceramic mug, steam rising in a shaft of blue light. Warm feelings in a cold palette, intimate and domestic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXBH1wtD6GHAJN1iYnzkTHwlbQGCJWzJ99ofCJXCL-7NusHS2_3nsKJoWyqAgxXvNyYY0O7v38F5kxIXt8RAa-rOQqcZYS6PxCwyukw1yfA7q8USG5R7Ub61FOzpJDbdJoBFQtjWuwOrmk76aGY7u0T6NmLt4u694_VSszC1cGbjN2hCPJRlEVG4h8e4XFYAcg-1f6yY5fr2opqCLhiE_HPpHZIwUv2gpy1WdQH11I0KDaM-FTuwFh"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Chapter 3: Random Curated (Square Cards - Bento Style Grid) -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+<div class="h-1 col-span-full w-12 bg-tertiary rounded-full opacity-30 mb-4"></div>
+<div class="photo-card aspect-square rounded-lg overflow-hidden border border-secondary/20 cursor-pointer relative group">
+<img class="w-full h-full object-cover" data-alt="Artistic close-up of a blue lotus flower in dark water. High-end botanical photography, moody lighting, obsidian background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuhSE05eklBvT560tFHlogZH4VsEOCRGTecqGQxkCpjyFmuV6xA9ZFmD7Ojwnp9pfi4dUA-7sWPIJw0n_60eHtYUGfkjXQgBRqBmi7zeLhlDDJCXsM5iEtzf-3TXbCq4UopRWmHXApBxaMWE2uH8kLoNy5SkSHFMv1c2zH-IuWbV2YSnu5rRBxYcZlJqCFanhxiJsV3Ye6dbBjauGpTRIRhuCw3T7717ZTiu4UCxyrtCJ4qcYVxSQV"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div class="photo-card aspect-square rounded-lg overflow-hidden border border-secondary/20 cursor-pointer relative group">
+<img class="w-full h-full object-cover" data-alt="Low-key photography of a vintage camera on a dark wooden table, illuminated by a single blue rim light. Minimalist and technical." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0txFt1JBkDB3a6F-VVxuNrYjh89UCZy_uIdnWHvK8kwTEoMy-GR2oDDVSkNTfZHCrMAEUdCfZCcKZqccU_9iPkOCaLSXiCXoRaK96UweUEQQ4OnaS-SaC6pmw4i1wdIlP6LeNOAvzKMTx-L484DlWJAzb4d3pzIGOH7E9UeRGq-swXKFbYz888KXA-jKdabOdhcU8vTgKZGX8EFkHbFevIB_XpU5pzvcLF6ydE5pmacT6lbBEL6Ha"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div class="photo-card aspect-square rounded-lg overflow-hidden border border-secondary/20 cursor-pointer relative group">
+<img class="w-full h-full object-cover" data-alt="Abstract light trails in sapphire and white against a black void. Long exposure photography, high-energy yet sleek and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_dhyzXyQaj47lgCDVBx8AJSrwnhDHDq-l-_pgB4b4EtXsJzXiKlZWcAzOHgCL6CzOXd1ynr7wfwI2z7Y3B0HbTqbJTWhc34YcDOOkztyYNYMSDOp855Uh6a0cRohWZRI8sQ5Rq39Ylz33MwmCOO-JbbJew2-SHUsxMh1r-LRkcg3RFJq47LBR8huKvkJ0ic8Ia9E0xuSaUKS0xBbNNM3xGfwE5XbjtxfpLintAut7AKW10HUIcL3V"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div class="photo-card aspect-square rounded-lg overflow-hidden border border-secondary/20 cursor-pointer relative group">
+<img class="w-full h-full object-cover" data-alt="Minimalist landscape of a single tree in a snowy blue-tinged field at dusk. Serene, cold, and beautifully composed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtTwxJNg7GHDkeJfa-Si1lOvNQeZUr7XHvPdD6oTdHboCPzPP1wCTy_ed6UiZuk3A4Bj5OehrBbZ6bA8XmoQ9lHZGILER_q4zqXcuHQzxeMtVPoJ7QPgQ6x6NN5Nwu735MsH3XLW4O4YypnfdT8ziAIC4icAmc63qzgRYF6rqEvi2239LODhICjNHWaLT0OGTGh9Dj3qzdhrcA1nxr9j1NvY-Q0t764FY1z8yqVnl-xSLXYlWNA6jf"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation Shell -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 px-8 py-4 bg-tertiary/10 backdrop-blur-xl border border-secondary/20 rounded-full shadow-2xl">
+<span class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors cursor-pointer active:scale-90 transition-all duration-200" data-icon="grid_view">grid_view</span>
+<span class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors cursor-pointer active:scale-90 transition-all duration-200" data-icon="search">search</span>
+<!-- Active Favorite Tab -->
+<span class="material-symbols-outlined text-primary scale-125 hover:text-primary-fixed-dim transition-all cursor-pointer active:scale-90 duration-200" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors cursor-pointer active:scale-90 transition-all duration-200" data-icon="person">person</span>
+</nav>
+<!-- Overlay Interaction Script -->
+<script>
+        document.querySelectorAll('.photo-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Zoom animation logic
+                const img = card.querySelector('img');
+                console.log('Opening focal view for image:', img.getAttribute('data-alt'));
+                // In a full implementation, this would trigger a Focal Overlay component.
+            });
+        });
+
+        // Simple smooth scroll horizontal navigation for carousels
+        const scrolls = document.querySelectorAll('.no-scrollbar');
+        scrolls.forEach(scroll => {
+            scroll.addEventListener('wheel', (evt) => {
+                evt.preventDefault();
+                scroll.scrollLeft += evt.deltaY;
+            });
+        });
+    </script>
+</body></html>

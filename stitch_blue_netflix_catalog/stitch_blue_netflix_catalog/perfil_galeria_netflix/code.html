@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(182, 196, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .profile-ring {
+            position: relative;
+        }
+        .profile-ring::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 9999px;
+            background: conic-gradient(from 0deg, transparent, #adc6ff, transparent, #adc6ff, transparent);
+            animation: rotate 10s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        body {
+            background-color: #0c1324;
+            overflow: hidden;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#2e3447",
+                        "outline": "#8b90a0",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary-fixed": "#d6e3ff",
+                        "surface-container-lowest": "#070d1f",
+                        "surface-container-low": "#151b2d",
+                        "on-tertiary-container": "#00226e",
+                        "surface": "#0c1324",
+                        "secondary-container": "#3c4962",
+                        "tertiary-container": "#748de1",
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#b9c7e4",
+                        "surface-variant": "#2e3447",
+                        "background": "#0c1324",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-surface-variant": "#c1c6d7",
+                        "on-surface": "#dce1fb",
+                        "surface-tint": "#adc6ff",
+                        "surface-dim": "#0c1324",
+                        "primary-container": "#4b8eff",
+                        "on-background": "#dce1fb",
+                        "on-primary": "#002e69",
+                        "surface-container-high": "#23293c",
+                        "inverse-on-surface": "#2a3043",
+                        "tertiary-fixed": "#dce1ff",
+                        "on-primary-fixed": "#001a41",
+                        "error": "#ffb4ab",
+                        "tertiary": "#b6c4ff",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#abb9d6",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-tertiary-fixed-variant": "#264191",
+                        "on-primary-container": "#00285c",
+                        "on-tertiary-fixed": "#00164e",
+                        "on-primary-fixed-variant": "#004493",
+                        "outline-variant": "#414755",
+                        "primary": "#adc6ff",
+                        "secondary-fixed-dim": "#b9c7e4",
+                        "surface-container": "#191f31",
+                        "on-secondary-fixed": "#0d1c32",
+                        "surface-bright": "#33394c",
+                        "inverse-primary": "#005bc1",
+                        "tertiary-fixed-dim": "#b6c4ff",
+                        "on-tertiary": "#05297a",
+                        "on-secondary": "#233148",
+                        "inverse-surface": "#dce1fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "mobile-margin": "1rem",
+                        "page-margin": "4rem",
+                        "gutter": "0.75rem",
+                        "row-gap": "2.5rem"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="text-on-surface selection:bg-primary selection:text-on-primary min-h-screen relative flex flex-col items-center justify-center overflow-hidden">
+<!-- Background Shader Layer -->
+
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-mobile-margin h-16 z-50 bg-gradient-to-b from-surface-container-lowest to-transparent">
+<div class="text-primary font-black cursor-pointer hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">lens</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 border border-primary/20 overflow-hidden active:scale-95 transition-all duration-300 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A high-end studio portrait of a young woman with a calm, cinematic expression. She is framed in a tight headshot with soft blue rim lighting that separates her from a deep obsidian background. The visual style is minimalist and high-fashion, with a focus on textures and sharp clarity. The lighting creates a sense of intimacy and premium quality, aligning with the dark blue, glassmorphic UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxD1yYY9Qh73ZxtjAqm4kQLfTBmEX9MZvnwIj3m2BZxJfkp6q-u5VwIFg4hhSmtmmbepySSH-5rqSEU0-WRoB_y-LGIuaUTmriDxu93oLu_AGWqrMD-HyI98Fpfwqo07M637ZO16QDrxHy3_JRRGmqCijUDz7cDlW-zsfVBvxLxBTPS6U4UT7QyUng7DsoyiLR92_WgPaoepq13MLpw32weqp3nuDZCuM6gTQTBt0UKYnTKjhqQyDy"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-lg px-mobile-margin flex flex-col items-center gap-12">
+<!-- Center Profile Section -->
+<div class="profile-ring flex flex-col items-center group">
+<div class="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-surface-container-high shadow-2xl relative transition-transform duration-500 group-hover:scale-105">
+<img class="w-full h-full object-cover" data-alt="A striking center-focused portrait of a woman with an elegant, serene look. Her hair is styled softly, and her face is partially illuminated by an azure-tinted key light that echoes the app's primary color. The background is a velvety dark blue. The image is rendered with a high-end cinematic feel, resembling a premium streaming service profile avatar. Sharp focus on eyes, shallow depth of field, high-contrast lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD3xvMp_ttnHoHa1N3DshOnd61hKve8gsong7tAlMKV1xnciHoOTLh4oqg9vzqOcFo-Vlc392Dfkh_67pkttjKBCDXhh3v8ngUPIJmvJkevQxBdbQ_wwciqVj5l1hVoImNE8P4afBTJFGXgAOaSodHMkFd0QXK2X19RHfLxhIBB7DG3oNZ5rok8MYN3-Tuj_ZOlP3pDxgLWYY8u6A_DNs7q3ZKNEq8ifiuznjtTppFZ1b-TG82FeYx"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</div>
+</div>
+<!-- Minimalist Interaction Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter w-full">
+<!-- Grid Item 1: Album -->
+<button class="glass-panel aspect-square rounded-xl flex items-center justify-center group active:scale-90 transition-all duration-300 border border-secondary/10 hover:border-primary/40">
+<span class="material-symbols-outlined text-tertiary group-hover:text-primary text-4xl transition-colors">photo_library</span>
+</button>
+<!-- Grid Item 2: Favorites -->
+<button class="glass-panel aspect-square rounded-xl flex items-center justify-center group active:scale-90 transition-all duration-300 border border-secondary/10 hover:border-primary/40">
+<span class="material-symbols-outlined text-tertiary group-hover:text-primary text-4xl transition-colors">favorite</span>
+</button>
+<!-- Grid Item 3: Shared -->
+<button class="glass-panel aspect-square rounded-xl flex items-center justify-center group active:scale-90 transition-all duration-300 border border-secondary/10 hover:border-primary/40">
+<span class="material-symbols-outlined text-tertiary group-hover:text-primary text-4xl transition-colors">group</span>
+</button>
+<!-- Grid Item 4: Settings -->
+<button class="glass-panel aspect-square rounded-xl flex items-center justify-center group active:scale-90 transition-all duration-300 border border-secondary/10 hover:border-primary/40">
+<span class="material-symbols-outlined text-tertiary group-hover:text-primary text-4xl transition-colors">settings_motion_mode</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Rail (Icon Only) -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 px-8 py-4 bg-tertiary/10 backdrop-blur-xl border border-secondary/20 rounded-full shadow-2xl">
+<button class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined text-2xl">grid_view</span>
+</button>
+<button class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+<button class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined text-2xl">favorite</span>
+</button>
+<button class="text-primary scale-125 hover:text-primary-fixed-dim transition-colors active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</button>
+</nav>
+<!-- Interactive Layer -->
+<div class="fixed inset-0 pointer-events-none opacity-0 transition-opacity duration-1000 z-0" id="cursor-glow"></div>
+<script>
+        // Micro-interactions for cursor glow effect
+        const glow = document.getElementById('cursor-glow');
+        window.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            glow.style.background = `radial-gradient(600px at ${x}px ${y}px, rgba(173, 198, 255, 0.05), transparent 80%)`;
+            glow.style.opacity = '1';
+        });
+
+        // Trigger subtle animations on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach((btn, index) => {
+                btn.style.opacity = '0';
+                btn.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    btn.style.transition = 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'translateY(0)';
+                }, 400 + (index * 100));
+            });
+        });
+    </script>
+</body></html>

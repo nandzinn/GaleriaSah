@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Visual Journal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            user-select: none;
+        }
+        
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .scroll-container {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .faded-edge::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100px;
+            background: linear-gradient(to right, transparent, #0c1324);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .photo-card-glow:hover {
+            box-shadow: 0 0 20px rgba(173, 198, 255, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-reveal {
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-highest": "#2e3447",
+                      "outline": "#8b90a0",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#d8e2ff",
+                      "secondary-fixed": "#d6e3ff",
+                      "surface-container-lowest": "#070d1f",
+                      "surface-container-low": "#151b2d",
+                      "on-tertiary-container": "#00226e",
+                      "surface": "#0c1324",
+                      "secondary-container": "#3c4962",
+                      "tertiary-container": "#748de1",
+                      "on-error-container": "#ffdad6",
+                      "secondary": "#b9c7e4",
+                      "surface-variant": "#2e3447",
+                      "background": "#0c1324",
+                      "primary-fixed-dim": "#adc6ff",
+                      "on-surface-variant": "#c1c6d7",
+                      "on-surface": "#dce1fb",
+                      "surface-tint": "#adc6ff",
+                      "surface-dim": "#0c1324",
+                      "primary-container": "#4b8eff",
+                      "on-background": "#dce1fb",
+                      "on-primary": "#002e69",
+                      "surface-container-high": "#23293c",
+                      "inverse-on-surface": "#2a3043",
+                      "tertiary-fixed": "#dce1ff",
+                      "on-primary-fixed": "#001a41",
+                      "error": "#ffb4ab",
+                      "tertiary": "#b6c4ff",
+                      "on-error": "#690005",
+                      "on-secondary-container": "#abb9d6",
+                      "on-secondary-fixed-variant": "#39475f",
+                      "on-tertiary-fixed-variant": "#264191",
+                      "on-primary-container": "#00285c",
+                      "on-tertiary-fixed": "#00164e",
+                      "on-primary-fixed-variant": "#004493",
+                      "outline-variant": "#414755",
+                      "primary": "#adc6ff",
+                      "secondary-fixed-dim": "#b9c7e4",
+                      "surface-container": "#191f31",
+                      "on-secondary-fixed": "#0d1c32",
+                      "surface-bright": "#33394c",
+                      "inverse-primary": "#005bc1",
+                      "tertiary-fixed-dim": "#b6c4ff",
+                      "on-tertiary": "#05297a",
+                      "on-secondary": "#233148",
+                      "inverse-surface": "#dce1fb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "mobile-margin": "1rem",
+                      "page-margin": "4rem",
+                      "gutter": "0.75rem",
+                      "row-gap": "2.5rem"
+              },
+              "fontFamily": {
+                      "hidden": ["Inter"]
+              },
+              "fontSize": {
+                      "hidden": ["0px", {"lineHeight": "0px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen overflow-x-hidden">
+<!-- Top Navigation Anchor (Translated from JSON) -->
+<nav class="fixed top-0 w-full bg-transparent flex justify-between items-center px-mobile-margin h-16 z-50 bg-gradient-to-b from-surface-container-lowest to-transparent">
+<div class="text-primary font-black flex items-center gap-2">
+<span class="material-symbols-outlined text-3xl">lens</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/20 hover:scale-110 transition-transform cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A cinematic portrait of a stylish young woman with striking features, captured in a high-end photography studio. She has deep blue eyes that match the interface's primary azure accents. The lighting is moody and dramatic, with soft rim light defining her silhouette against a dark, obsidian blue background. The aesthetic is ultra-modern, intimate, and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcvP-ySPf5YaqbK4O_CMD9u6zYgCkmC42pSJ0qzFwN4f5ueuiQw2M3M7j99nX56sl9YiiNxutQBFZJ5OUXRP_xQ7gjcgeCxxVSYZz8c8e2eOkt2dQYYAKR_BSYtWADhBbbtTTKKHRPhGtxeecEqa1Sgc4iL8NxD8y5QuNIjzGLokONrZ7bz3YF9PL_TMmsuV8ZQFtO8WPHzl5nCV5_X5DE1MNLJ8Eg5wfNCDyZ18rss8YLfxtDj_g5"/>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<main class="relative w-full">
+<!-- Hero Image (Portrait focus but edge-to-edge container) -->
+<div class="relative h-[751px] w-full overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-transparent z-10"></div>
+<img class="w-full h-full object-cover object-center scale-105 animate-reveal" data-alt="A breathtaking full-body cinematic portrait of a beautiful woman standing in a neon-lit rain-slicked city street at night. The lighting consists of cool azure and deep sapphire tones reflecting off her skin and clothes. She wears a minimalist, high-fashion coat. The atmosphere is melancholic yet serene, perfectly capturing a high-end visual storytelling mood in a low-light environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvG0OmbiB2g0zAMZrxRBpDBrK3NDhh1380dpdPIdS_Plfn_ZjgJXLUzpPiT9TI9nRCVoOK-8si_nXtdAxvwZtNezgbR-BigkzVgCEAxl31YQ_q2QZu1zEAQPoXsc54OHtK8UgnTsk_CHr4O25GwIgGDgD-ufZ5Do65IkGPYLv6oru1Ie7WQ9fZvCOrQLmvH55ZgBQP7DvA5zDxrEeGkOlDSpRxnevvilWBY1Dtn7mzM8d5MZlB7AME" style="filter: brightness(0.85);"/>
+<!-- Hero Overlay Icons (Minimalist) -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-8 items-center">
+<button class="w-14 h-14 rounded-full bg-primary/20 backdrop-blur-xl border border-primary/40 flex items-center justify-center text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-surface-container-highest/30 backdrop-blur-md border border-white/10 flex items-center justify-center text-on-surface active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</div>
+<!-- Content Canvas (Netflix Rows) -->
+<div class="relative z-20 -mt-20 space-y-row-gap pb-32">
+<!-- Row 1: Portrait Highlights -->
+<section class="pl-mobile-margin md:pl-page-margin">
+<div class="relative faded-edge">
+<div class="flex gap-gutter overflow-x-auto scroll-container pr-32 py-4">
+<!-- Card Loop (Manual for prompt variety) -->
+<div class="flex-none w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A portrait-oriented photo of a woman with long dark hair, walking through a field of lavender at twilight. The sky is a deep indigo, and the lighting is soft and ethereal. The colors are muted blues and purples, emphasizing a calm and personal atmosphere. High-end cinematic grain and shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHqzc7KIEvVMFqOmA1oIgPDEWMdc7bKeXmTUKR-IK6zw1oAXeHOe9skLaAgxnXabFFQnmJR6YYllS0CA6EEQPMeT-XGx4DQBXTCC4c9psPUEscHQ-3kwtFjqE4SgP2PyFAVQ_ls3X7qStWi5F8bV2vQpQoKijbHFf8gu2IEjxGfoz1NMbRgFPL10IsWI6PQQz0Q768hFFcDRRhq4djuFagHKsY1qD3wqzzxq-RTVRzvoLKV5aWSTBN"/>
+</div>
+<div class="flex-none w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a woman looking through a frosted glass window covered in raindrops. The lighting is dominated by cool blue tones from the exterior. Her expression is thoughtful. The glass creates a beautiful blurring effect that aligns with the glassmorphic UI design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfUvJzN6J3Lt8dp-HNGxU3Soldnk0Qny_zTgkIgDBCokwL2ldSCZ_trdZHxSO6Cgop8iF4iaU-w8aZLtmV0dg-l1tpQV-WTvNDwGZ4qTuew44zUONKCRmrv-xoLIpKE6NGPF8rmP_6pHslw3tJhdncYc1LKghQTruDrP-xCxO3Bpz-A4XDD_Dqv1-Bjlug4Bk55Tn89-oNuWIsBwYfa2mLjaGX8RQk9IC0h_alo7Vgk8MRKA74ZiF8"/>
+</div>
+<div class="flex-none w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A cinematic portrait of a girl sitting in a modern art gallery, illuminated by a single blue neon light sculpture. The light casts sharp, artistic shadows across her face. The background is a dark, sophisticated obsidian blue, making the highlight on her features pop with high-end intensity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTb9D_uW1fkWBc9vsCIhsAnXhYYSErJX5J2C80YNIcCe6SyaWwL6BBRL-ZYyeFcCYaYaU-chS9ngwzve6lychsJo43qtPjw9cn3OtWci_3ol4nJrBoerd0f74ob3sA3wiRa7CIwvewPD5HKDQpQbIRHdPvUMA0kmsjhM-GoOS0Zd7LpjzawUwZojYXoqx4QGrsrka3Yb2cedMJ6XJ0LwKmANUIJCr4TyT2lzTRJjv_c1I8P0PeCOLQ"/>
+</div>
+<div class="flex-none w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A stunning vertical shot of a woman standing on a balcony overlooking a futuristic city at night. The city lights are blurred into bokeh circles of sapphire and cyan. She is looking away from the camera, adding a sense of mystery and narrative depth to the collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOm9CHaLeJxYb3YPiV1olQCr13Lg2sJiJvWZGN7IQnYaXdQgpsbnloHHCfch5LC6OIOeiEcFraCwQUxoa8Y0I0XOl1VefuCLNEHSrKuNwvclqeQHd-EI-KxJMhc0ByR_ewX4MMUkP38DMQPZrL6S3SVND79Mhl3t9dy0yLgFy-PfOJoK1Ubb4dxJjclI6xWW3hEs5HEBwd8lcW9HnmRL07XrTJZTJs-YwKi8wdI2619yMAey1TrZdP"/>
+</div>
+<div class="flex-none w-48 md:w-64 aspect-[2/3] rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Detailed portrait of a girl in a snowy forest, wearing a dark blue woolen scarf. The lighting is overcast and soft, providing a clean, minimalist look. The white snow contrasts beautifully with the deep blue tones of her clothing and the dark trees in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClWmfLnBoLVNFglc6s3aMkEEWiYwb9znN7XUsG_DJZds1twl5JPGpkIRBf3tQTLaFN_YxvVoSHrsxEXKEWFPjoYywLaKwGg2lSHPFeAhIZF3ssa8FMj8DfbqUeSF4OpFA0TTUxwN5KYi-XYlslpjP9aQGj98S7ApDYlWRNYLwnbqFVOxB1X08fU0cYKrXpzACOg6WXY6VzsZJqN4mWehNWjHgL7PWMhIQpClhxCC0Er6VgNrkOlHPZ"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Row 2: Wider Landscape Narratives (Different Aspect Ratio) -->
+<section class="pl-mobile-margin md:pl-page-margin">
+<div class="relative faded-edge">
+<div class="flex gap-gutter overflow-x-auto scroll-container pr-32 py-4">
+<div class="flex-none w-72 md:w-96 aspect-video rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Wide cinematic shot of a woman standing on the edge of a cliff overlooking a dark, turbulent ocean under a moonlight sky. The scene is dominated by deep navy blues and silvery highlights. The composition is expansive, using the wide aspect ratio to showcase the epic scale of the environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwGshRGnR-530WXrlPvCpJvO6T1NGTp8tTIXhaMOqFnpj8e83UquwmFbRuW6p4zmNab-yk9O7GhP3A05kLboL0rC3OIXERp9ttb_nX7Q944n04MarDtUjvWBgCJ5Q7VnwsC15X733mRKs8jjWOOwZmrjjKvFNyaHxOnDMBDP98ar10YxAEiKtzx6QkOqsbPwE-btAUQRZkETDo6SERtWLj5nY-Vf47ST9_o8NjHeRTVEwF_pKh56mV"/>
+</div>
+<div class="flex-none w-72 md:w-96 aspect-video rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A wide-angle landscape shot of a woman walking through an abandoned, Brutalist concrete structure at dusk. Shadows are long and deep blue. The harsh architectural lines contrast with her soft silhouette. The mood is minimalist and high-end, focusing on spatial relationships." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNSWgCYfFSFUsAATS80_vEJDk90r1ANJMeR6YGwsMduoBGJtj4OlR6ZCYomyO4wW9oHFDtsPYk173G6NCbdoHVudmMLFoQG2BB2AXMY7Ff_KuIROLjknQTQI5E2seRgtW8TLGexwoye08r7ELAZSbcxBrHtr_rveJSWctgFUAuX61wHQloWaNMZhZwYq_KdKlHzmcAYwzI-fR7BsX03du0zBrzQG5vRivCgvega4nJvUYgWj-z3mSQ"/>
+</div>
+<div class="flex-none w-72 md:w-96 aspect-video rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A wide cinematic capture of a woman in a library filled with old books, illuminated by soft moonlight streaming through a large arched window. The lighting is moody, with blue tones filling the room. She is reading a book, lost in thought, creating an intimate storytelling moment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOqTb5clGnwiBndkA_SLm-RpPizM3Rc8wQyhOxbz1wwwa7RjeLD-vDDHqsxwTqBNnw-Wfy-1ZW_rvV0yga5jSoHwVjiwKynhJ8cgOQQwaUDf3JePDeSkIpYrXuzOaAc9tGpqpc6OpgSVudKLjefY2twgZg5jyy7UTR6aUzUOvt8XLWU03T9RLFtSxrV_Y8UkpVbLupum9KNYfb_gj7QTb1P1WLtpIIqyHXOpGHhan_ioJX6pybY2wF"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Row 3: Square Detail Studies -->
+<section class="pl-mobile-margin md:pl-page-margin">
+<div class="relative faded-edge">
+<div class="flex gap-gutter overflow-x-auto scroll-container pr-32 py-4">
+<div class="flex-none w-40 md:w-56 aspect-square rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A square-format close-up of a woman's hand holding a blue crystal, with light refracting through it and casting patterns on her skin. The focus is sharp and detailed. The color palette is strictly obsidian blue and bright azure, matching the glassmorphic UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpXDtUDrZQdO0AieuTZ3Op2YDM7RY1BRwd8d2JjuVCsYLmH0dIizjFAKjHdAicGfnUfgLoN5UMgDUrw5ky2hYrf39cbqPFIbZlpIK54gt2IV_MfjJWzaJGTOapUQwKW4-zEUenDCLC6GPsEhfk7xD5I8cMASe81CWY6ZI6ZdnriyW0FG8VcDYmtoJtrKfS4C21qnoMZlUrvvUEstOClDgMTZ5EGtmhzrhTABjnXcG8Szu6CngIQI_R"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-square rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Macro shot of a woman's eye reflecting a glowing blue screen. The eyelashes are sharp, and the iris is a vivid sapphire. The rest of the frame is dark blue-black. This detail-oriented shot emphasizes the intimate and high-end cinematic feel of the gallery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDN1_OYziVHwsDwWfHG6-mlcX2FmbAS59l2Q5LOj8ndOmhPNbiABbPLLwXVwc4ENgcCMfMYB14JEEJqklw2081NSLdDBVetTZRSLB_IYQPg9rhf9k4VBY1wZA8EAwMjLjeQqn6YQqY9J7IKNvM_tqISP_ugpSr9u3cVDoKzOZIE-vDhL9ZX4FuYor-a237e3pHmmtk7P1f-8Zv1GrGApVLdBcUPk3AMSmeQIoDU6f5qmdMs1yyqgH5"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-square rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Square portrait of a woman's silhouette against a backlit blue fabric background. The texture of the cloth and the soft outline of her profile create a minimalist and artistic composition, focusing on form and shadow over detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr-HuXuXDaEyIdHuqw9Ozj5vY-oXolkXjms7Lmgl8Y2BPFTw_aRbyyv5xJHkHNoKS4Qu9Hxj7GMJiaRnbHQW_dhhDeVeDs2LstJE67G6z6PWOe5SKIKEacdlZ9zdZwhe51gRZrmMoV5xo2XWbxbqMr3sd3yPims_mEY-fTrvNyAgYDXKICqLp63u0bFZ7mNKTfR8wwUYOuzEQDWiIJtlYPxtE7keltsGVIXJiADumN9LrHOX4HLSVh"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-square rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="A square detail shot of a woman's feet walking through shallow, dark blue water at night. Small ripples catch the cool moonlight. The image is calm and evokes a sense of journey and movement within the photo collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaxcCL6l5BMqtWx9qwO0_EH9pOWbj_4d-DoZ1UVybmaEoYwHeypbLZSBUlQlnoCkWPml2P4_P450IjtqNw9zBuDiUQTfdEs7lsyBrNANBKQ0HjQlAw32bMhB0P1W-HBOr5DGqAlHEHwwB4r1pxCs9U2_mNFucj9I4JcXzVPn3GSO1UXPpD8wnuCxRBxu1DO5yTPWXm8-oVFlYssgYXIwJfItVeWPieFJZb7CPN1U9k4GOC1JrMk038"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-square rounded-xl overflow-hidden group cursor-pointer photo-card-glow transition-all duration-300 hover:scale-105 border border-secondary/20 hover:border-primary/60">
+<img class="w-full h-full object-cover" data-alt="Close-up of a woman's shoulder and neck as she wears an intricate sapphire necklace. The jewelry sparkles with deep blue light. The lighting is high-key but soft, maintaining the sophisticated obsidian blue aesthetic of the brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVzzn4iGlLvvvNfgVPgEZrImA8xf8PlIZJm4q7X4OC-7_bcb_3mw7wmlMmub1hgTCq0TuSptej6tTE_KcMqnSPJ3Amh_YxgudasSf5wBm_VbiT_hEpLj4Ll4o-W2CpSpERtEir46BRJbp-DH2pAwTSM2bxmadAaUJkL3KKN3JIWZBU84UiNyAeKnZYBl07-z4wDHTC12bKLcMPZAW0Az1TZuUX8L0qzdieyqesi3TBBtSWEgVxxjrj"/>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Translated from JSON) -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 px-8 py-4 bg-tertiary/10 backdrop-blur-xl border border-secondary/20 rounded-full shadow-2xl">
+<a class="text-primary scale-125 transition-all duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</a>
+<a class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-2xl">search</span>
+</a>
+<a class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-2xl">favorite</span>
+</a>
+<a class="text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+</a>
+</nav>
+<!-- Interactive Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const containers = document.querySelectorAll('.scroll-container');
+            
+            containers.forEach(container => {
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+
+                container.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    container.classList.add('active');
+                    startX = e.pageX - container.offsetLeft;
+                    scrollLeft = container.scrollLeft;
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    isDown = false;
+                });
+
+                container.addEventListener('mouseup', () => {
+                    isDown = false;
+                });
+
+                container.addEventListener('mousemove', (e) => {</script></body></html>
