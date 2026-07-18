@@ -1,9 +1,11 @@
 # 💙 Galeria da Sah
 
-Uma galeria de fotos interativa no estilo Netflix, feita com HTML puro — sem frameworks, sem servidor. Basta abrir o `index.html` no navegador ou publicar no GitHub Pages.
+Uma galeria de fotos interativa no estilo Netflix, feita com HTML, CSS e JavaScript puro — com autenticação Firebase, perfil de usuário e experiência premium.
 
 ## ✨ Funcionalidades
 
+- 🔐 **Autenticação** com Firebase (login/registro)
+- 👤 **Perfil de usuário** personalizável
 - 📷 **Trocar qualquer foto** pelo celular (câmera ou galeria)
 - ➕ **Adicionar novos cards** em cada fileira
 - 🗑 **Arquivar e excluir** fotos com lixeira e restauração
@@ -16,11 +18,14 @@ Uma galeria de fotos interativa no estilo Netflix, feita com HTML puro — sem f
 
 ```
 Galeria_sah/
-├── index.html          ← arquivo principal
+├── index.html          ← página inicial / onboarding
+├── auth.html           ← login e cadastro
+├── gallery.html        ← galeria principal
+├── profile.html        ← perfil do usuário
+├── onboarding.html     ← tela de boas-vindas
+├── js/                 ← scripts JavaScript
+│   └── firebase-config.js
 ├── fotos/              ← pasta com as fotos padrão
-│   ├── fotos1.jpeg
-│   ├── fotos2.jpeg
-│   └── ...
 └── docs/               ← documentação e guias
     ├── GUIA_RAPIDO.md
     ├── FUNCIONALIDADES.md
@@ -29,10 +34,10 @@ Galeria_sah/
 
 ## 🚀 Como publicar no GitHub Pages
 
-1. Crie um repositório no GitHub (ex: `galeria-sah`)
-2. Faça upload de todos os arquivos (incluindo a pasta `fotos/`)
-3. Vá em **Settings → Pages → Branch: main → / (root)**
-4. Aguarde ~1 min — o link ficará: `https://seuusuario.github.io/galeria-sah/`
+1. Crie um repositório no GitHub (ex: `GaleriaSah`)
+2. Faça o push de todos os arquivos via Git
+3. Vá em **Settings → Pages → Branch: master → / (root)**
+4. Aguarde ~1 min — o link ficará: `https://nandzinn.github.io/GaleriaSah/`
 
 > 📖 Veja a pasta `docs/` para guias detalhados de personalização.
 
