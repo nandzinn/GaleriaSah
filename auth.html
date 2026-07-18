@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — Galeria</title>
+  <meta name="description" content="Faça login ou crie sua conta na Galeria">
+
+  <!--
+    ══════════════════════════════════════════════════════
+    auth.html — TELA DE AUTENTICAÇÃO
+    ══════════════════════════════════════════════════════
+    Esta página gerencia QUATRO estados/telas em um só arquivo:
+      1. LOGIN       → formulário de e-mail + senha para entrar
+      2. CADASTRO    → formulário para criar uma nova conta
+      3. VERIFICAÇÃO → tela exibida após cadastro para confirmar e-mail
+      4. RECUPERAÇÃO → formulário para enviar link de redefinição de senha
+
+    As telas são trocadas pela função showView() sem recarregar a página.
+    Apenas uma tela fica visível por vez (as demais ficam com .hidden).
+  -->
+
+  <!-- Google Fonts: carrega a fonte "Inter" do servidor do Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Material Symbols: ícones do Google (photo_library, mail, lock, etc.) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       VARIÁVEIS CSS (Design Tokens)
+       Altere aqui para mudar as cores de todo o app de auth.
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --bg-main:      #070d1f;  /* cor de fundo principal (azul escuro quase preto) */
+      --bg-surface:   #0c1324;  /* superfícies secundárias */
+      --bg-card:      #131929;  /* cor de fundo dos cards */
+      --color-primary:#adc6ff;  /* azul claro — cor principal */
+      --color-mid:    #748de1;  /* azul médio */
+      --color-deep:   #4b8eff;  /* azul vivo — botões */
+      --text-main:    #dce1fb;  /* texto principal (quase branco) */
+      --text-muted:   #c1c6d7;  /* texto secundário */
+      --text-dim:     #8b90a0;  /* texto apagado (placeholders, dicas) */
+      --rgb-primary:  173,198,255; /* mesma cor de --color-primary em RGB separado */
+      --rgb-mid:      116,141,225; /* mesma cor de --color-mid em RGB separado */
+      --error:        #ff6b6b;  /* vermelho para mensagens de erro */
+      --success:      #4ade80;  /* verde para mensagens de sucesso */
+    }
+
+    /* Reset global: remove margens/paddings padrão do browser */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Estilo do <body>: centraliza o card de login no centro da tela */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100dvh;       /* altura total da tela */
+      display: flex;
+      align-items: center;      /* centraliza verticalmente */
+      justify-content: center;  /* centraliza horizontalmente */
+      overflow: hidden;         /* esconde barras de scroll */
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ORBS ANIMADOS (efeito de iluminação de fundo)
+       São círculos com blur que flutuam sutilmente.
+       Não interferem em cliques (pointer-events: none).
+    ═══════════════════════════════════════════════════════ */
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb {
+      position: absolute;
+      border-radius: 50%;     /* círculo perfeito */
+      filter: blur(80px);     /* desfoque forte → efeito de brilho difuso */
+      opacity: 0.18;
+      animation: drift 14s ease-in-out infinite alternate; /* flutua suavemente */
+    }
+    /* Três orbs com cores, tamanhos e velocidades diferentes */
+    .orb-1 { width: 520px; height: 520px; background: radial-gradient(circle, #4b8eff, transparent 70%); top: -160px; left: -100px; animation-duration: 16s; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #7c3aed, transparent 70%); bottom: -120px; right: -80px; animation-duration: 20s; animation-delay: -5s; }
+    .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #adc6ff, transparent 70%); top: 40%; left: 50%; transform: translate(-50%, -50%); animation-duration: 12s; animation-delay: -3s; opacity: 0.09; }
+
+    /* Animação "drift": o orb se move levemente de um lado para o outro */
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.08); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       CONTAINER E CARD PRINCIPAL
+    ═══════════════════════════════════════════════════════ */
+    .auth-container {
+      position: relative;
+      z-index: 1;         /* fica acima dos orbs (z-index: 0) */
+      width: 100%;
+      max-width: 420px;   /* largura máxima do card */
+      padding: 16px;
+    }
+
+    .auth-card {
+      background: rgba(12, 19, 36, 0.75); /* fundo translúcido */
+      border: 1px solid rgba(var(--rgb-primary), 0.12);
+      border-radius: 24px;
+      padding: 36px 32px 32px;
+      backdrop-filter: blur(24px); /* efeito vidro (frosted glass) */
+      -webkit-backdrop-filter: blur(24px); /* compatibilidade Safari */
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(var(--rgb-primary),0.06);
+      animation: slideUp 0.5s cubic-bezier(.25,1,.5,1) both; /* entra de baixo para cima */
+    }
+    /* Animação de entrada do card */
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(28px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BRAND (logo + nome do app)
+    ═══════════════════════════════════════════════════════ */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      justify-content: center;
+    }
+    /* Quadrado com ícone "photo_library" */
+    .brand-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(var(--rgb-primary),0.2), rgba(var(--rgb-mid),0.3));
+      border: 1px solid rgba(var(--rgb-primary),0.25);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-primary);
+    }
+    .brand-icon .material-symbols-outlined { font-size: 22px; }
+    /* Nome "Galeria" com gradiente */
+    .brand-name { font-size: 24px; font-weight: 800; background: linear-gradient(90deg, var(--color-primary), var(--color-mid)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; }
+
+    /* ═══════════════════════════════════════════════════════
+       TABS (Entrar / Criar conta)
+       Duas abas que alternam entre viewLogin e viewRegister.
+    ═══════════════════════════════════════════════════════ */
+    .tabs {
+      display: flex;
+      background: rgba(var(--rgb-primary), 0.05);
+      border: 1px solid rgba(var(--rgb-primary), 0.1);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1;             /* cada aba ocupa metade */
+      padding: 9px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    /* Aba selecionada: fundo destacado + cor primária */
+    .tab.active {
+      background: rgba(var(--rgb-primary), 0.15);
+      color: var(--color-primary);
+      border: 1px solid rgba(var(--rgb-primary), 0.2);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       VIEWS (telas dentro do card)
+       Cada view é uma seção. A classe "hidden" esconde a view.
+    ═══════════════════════════════════════════════════════ */
+    .view { animation: fadeIn 0.3s ease; } /* aparece com fade ao trocar de tela */
+    .view.hidden { display: none; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+    /* ═══════════════════════════════════════════════════════
+       GRUPOS DE FORMULÁRIO
+       Cada campo de input tem: label + input-wrapper (ícone + input + botão olho)
+    ═══════════════════════════════════════════════════════ */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    /* Container que engloba ícone + input + botão olho */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    /* Ícone à esquerda do input (ex: mail, lock) */
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-dim);
+      font-size: 18px;
+      pointer-events: none; /* não bloqueia cliques no input */
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .input-wrapper input {
+      width: 100%;
+      padding: 12px 44px 12px 42px; /* 42px à esquerda para o ícone, 44px à direita para o botão olho */
+      background: rgba(var(--rgb-primary), 0.04);
+      border: 1px solid rgba(var(--rgb-primary), 0.12);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      outline: none; /* remove borda padrão do browser ao focar */
+    }
+    .input-wrapper input::placeholder { color: var(--text-dim); }
+    /* Estilo quando o campo está com foco (usuário digitando) */
+    .input-wrapper input:focus {
+      border-color: rgba(var(--rgb-primary), 0.45);
+      background: rgba(var(--rgb-primary), 0.07);
+      box-shadow: 0 0 0 3px rgba(var(--rgb-primary), 0.08); /* anel de foco suave */
+    }
+    /* Botão de mostrar/ocultar senha (ícone olho) */
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover { color: var(--color-primary); }
+    .toggle-password .material-symbols-outlined {
+      font-size: 18px;
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BOTÕES
+    ═══════════════════════════════════════════════════════ */
+
+    /* Botão principal (gradiente azul — Entrar, Criar conta) */
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--color-deep), var(--color-mid));
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(75,142,255,0.3); /* sombra azulada */
+    }
+    /* Hover: sobe levemente e fica mais brilhante */
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(75,142,255,0.4);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Botão com borda (Reenviar e-mail) */
+    .btn-outline {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(var(--rgb-primary), 0.25);
+      background: transparent;
+      color: var(--color-primary);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 10px;
+    }
+    .btn-outline:hover { background: rgba(var(--rgb-primary), 0.08); border-color: rgba(var(--rgb-primary), 0.4); }
+
+    /* Botão de texto simples (Esqueci minha senha, Usar outra conta) */
+    .btn-link {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.2s;
+      text-align: center;
+      margin-top: 6px;
+    }
+    .btn-link:hover { color: var(--color-primary); }
+
+    /* Botão "← Voltar" da tela de recuperação de senha */
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      padding: 0;
+      margin-bottom: 18px;
+      transition: color 0.2s;
+    }
+    .btn-back:hover { color: var(--color-primary); }
+    .btn-back .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+
+    /* ═══════════════════════════════════════════════════════
+       SPINNER (animação de carregamento dentro de botões)
+       Aparece enquanto aguarda resposta do Firebase.
+    ═══════════════════════════════════════════════════════ */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; /* só o topo colorido → efeito de rotação */
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════════════════════════════════════
+       MENSAGENS DE ERRO E SUCESSO
+    ═══════════════════════════════════════════════════════ */
+    .error-msg {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--error);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Círculo com "!" antes do texto de erro (via CSS puro) */
+    .error-msg::before {
+      content: '!';
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--error);
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0; /* não encolhe quando o texto é longo */
+    }
+    .msg-success {
+      background: rgba(74,222,128,0.1);
+      border: 1px solid rgba(74,222,128,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+
+    /* Títulos dentro de cada view (ex: "Recuperar senha") */
+    .view-title { font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .view-subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 22px; line-height: 1.55; }
+
+    /* ═══════════════════════════════════════════════════════
+       VIEW: VERIFICAÇÃO DE E-MAIL
+       Tela exibida após cadastro — pede para confirmar o e-mail.
+    ═══════════════════════════════════════════════════════ */
+    .verify-content { text-align: center; padding: 8px 0; }
+    .verify-icon {
+      width: 68px; height: 68px;
+      margin: 0 auto 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(var(--rgb-primary),0.15), rgba(var(--rgb-mid),0.2));
+      border: 1px solid rgba(var(--rgb-primary),0.2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-primary);
+    }
+    .verify-icon .material-symbols-outlined { font-size: 32px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48; }
+    .verify-content h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
+    .verify-content p { font-size: 14px; color: var(--text-dim); line-height: 1.6; margin-bottom: 24px; }
+
+    /* Divisória "── OU ──" */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(var(--rgb-primary), 0.1); /* linha fina semitransparente */
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BARRA DE FORÇA DA SENHA
+       Aparece abaixo do campo de senha no cadastro.
+       Vai de 0 a 5 pontos (tamanho + maiúscula + número + especial)
+    ═══════════════════════════════════════════════════════ */
+    .pwd-strength { margin-top: 6px; height: 3px; border-radius: 3px; background: rgba(var(--rgb-primary),0.1); overflow: hidden; }
+    /* O preenchimento muda width e background-color via JavaScript */
+    .pwd-strength-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; width: 0%; }
+
+    /* Responsividade: padding menor em telas muito pequenas */
+    @media (max-width: 440px) {
+      .auth-card { padding: 28px 22px 24px; border-radius: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Fundo animado — não é clicável (pointer-events: none) -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main class="auth-container">
+    <div class="auth-card" id="authCard">
+
+      <!-- ── Logo + Nome ── -->
+      <div class="brand">
+        <div class="brand-icon">
+          <span class="material-symbols-outlined">photo_library</span>
+        </div>
+        <span class="brand-name">Galeria</span>
+      </div>
+
+      <!-- ── Tabs: Entrar / Criar conta ──
+           onclick chama showView() definida no JS abaixo.
+           A classe "active" é adicionada/removida pelo JS.
+      -->
+      <div class="tabs" id="tabs">
+        <button class="tab active" id="tabLogin"    onclick="showView('login')">Entrar</button>
+        <button class="tab"        id="tabRegister" onclick="showView('register')">Criar conta</button>
+      </div>
+
+      <!-- ═══ VIEW: LOGIN ═══
+           Visível por padrão. Formulário: e-mail + senha + botão.
+           novalidate → desativa validação padrão do browser (usamos a nossa própria).
+      -->
+      <div class="view" id="viewLogin">
+        <form id="formLogin" novalidate>
+          <!-- Campo de e-mail -->
+          <div class="form-group">
+            <label for="loginEmail">E-mail</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+          </div>
+          <!-- Campo de senha com botão olho para mostrar/ocultar -->
+          <div class="form-group">
+            <label for="loginPassword">Senha</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">lock</span>
+              <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="toggle-password" id="toggleLoginPwd" aria-label="Mostrar senha">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+          <!-- Mensagem de erro (oculta por padrão, mostrada via JS) -->
+          <div class="error-msg" id="loginError" style="display:none;"></div>
+          <!-- Botão de submit: exibe texto OU spinner, nunca os dois juntos -->
+          <button type="submit" class="btn-primary" id="btnLogin">
+            <span id="btnLoginText">Entrar</span>
+            <span id="btnLoginLoader" style="display:none;"><span class="spinner"></span></span>
+          </button>
+          <button type="button" class="btn-link" onclick="showView('reset')">Esqueci minha senha</button>
+        </form>
+      </div>
+
+      <!-- ═══ VIEW: CADASTRO ═══
+           Oculta por padrão (.hidden). Campos: e-mail, senha, confirmação de senha.
+      -->
+      <div class="view hidden" id="viewRegister">
+        <form id="formRegister" novalidate>
+          <div class="form-group">
+            <label for="regEmail">E-mail</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input type="email" id="regEmail" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Senha</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">lock</span>
+              <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6" id="regPassword">
+              <button type="button" class="toggle-password" id="toggleRegPwd" aria-label="Mostrar senha">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+            <!-- Barra de força da senha: width e cor controlados pelo JS -->
+            <div class="pwd-strength" id="pwdStrengthBar">
+              <div class="pwd-strength-fill" id="pwdStrengthFill"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="regPasswordConfirm">Confirmar senha</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">lock_check</span>
+              <input type="password" id="regPasswordConfirm" placeholder="Repita a senha" autocomplete="new-password" required>
+              <button type="button" class="toggle-password" id="toggleRegConfirmPwd" aria-label="Mostrar senha">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+          <div class="error-msg" id="registerError" style="display:none;"></div>
+          <button type="submit" class="btn-primary" id="btnRegister">
+            <span id="btnRegisterText">Criar conta</span>
+            <span id="btnRegisterLoader" style="display:none;"><span class="spinner"></span></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ═══ VIEW: VERIFICAÇÃO DE E-MAIL ═══
+           Aparece após o cadastro. Orienta o usuário a verificar o e-mail.
+           Botões:
+             • "Já confirmei" → chama checkVerified() → verifica e redireciona
+             • "Reenviar"     → chama resendVerification() → envia novo e-mail
+             • "Outra conta"  → faz logout e volta para o login
+      -->
+      <div class="view hidden" id="viewVerify">
+        <div class="verify-content">
+          <div class="verify-icon">
+            <span class="material-symbols-outlined">mark_email_unread</span>
+          </div>
+          <h2>Confirme seu e-mail</h2>
+          <!-- O texto é atualizado via JS para mostrar o e-mail real -->
+          <p id="verifyEmailText">Enviamos um link de confirmação para o seu e-mail. Verifique sua caixa de entrada (e a pasta de spam).</p>
+          <div class="error-msg" id="verifyError" style="display:none;"></div>
+          <button class="btn-primary" id="btnCheckVerified" onclick="checkVerified()">
+            <span>Já confirmei — Continuar</span>
+          </button>
+          <button class="btn-outline" id="btnResend" onclick="resendVerification()">Reenviar e-mail</button>
+          <button type="button" class="btn-link" onclick="logoutAndReset()">Usar outra conta</button>
+        </div>
+      </div>
+
+      <!-- ═══ VIEW: RECUPERAÇÃO DE SENHA ═══
+           Oculta por padrão. Campo de e-mail para receber o link de redefinição.
+      -->
+      <div class="view hidden" id="viewReset">
+        <form id="formReset" novalidate>
+          <button type="button" class="btn-back" onclick="showView('login')">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Voltar
+          </button>
+          <h2 class="view-title">Recuperar senha</h2>
+          <p class="view-subtitle">Digite seu e-mail e enviaremos um link para criar uma nova senha.</p>
+          <div class="form-group">
+            <label for="resetEmail">E-mail</label>
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">mail</span>
+              <input type="email" id="resetEmail" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="error-msg" id="resetError" style="display:none;"></div>
+          <div class="msg-success" id="resetSuccess" style="display:none;">✓ Link enviado! Verifique seu e-mail.</div>
+          <button type="submit" class="btn-primary" id="btnReset">
+            <span id="btnResetText">Enviar link</span>
+            <span id="btnResetLoader" style="display:none;"><span class="spinner"></span></span>
+          </button>
+        </form>
+      </div>
+
+    </div><!-- /auth-card -->
+  </main>
+
+  <!--
+    ══════════════════════════════════════════════════════
+    JAVASCRIPT — LÓGICA DE AUTENTICAÇÃO
+    ══════════════════════════════════════════════════════
+  -->
+  <script type="module">
+    // Importa serviços Firebase configurados
+    import { auth, db } from './js/firebase-config.js';
+
+    // Importa funções de autenticação
+    import {
+      createUserWithEmailAndPassword, // cria conta com e-mail e senha
+      signInWithEmailAndPassword,     // faz login com e-mail e senha
+      sendEmailVerification,          // envia e-mail de verificação
+      sendPasswordResetEmail,         // envia e-mail de redefinição de senha
+      onAuthStateChanged,             // observa mudanças no estado de login
+      signOut                         // faz logout
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // Importa funções do Firestore (banco de dados)
+    import {
+      doc,     // cria referência a um documento
+      getDoc   // lê um documento
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ─── Observador de Estado de Login ─────────────────────────────────────
+    // Esta função é chamada AUTOMATICAMENTE pelo Firebase sempre que o estado
+    // de login muda (ao entrar, sair, ou ao carregar a página pela primeira vez).
+    // "user" → null se não logado, ou objeto com dados do usuário se logado.
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return; // Não logado — fica na tela de auth
+
+      if (!user.emailVerified) {
+        // Logado mas e-mail não verificado → mostra a tela de verificação
+        document.getElementById('verifyEmailText').textContent =
+          `Enviamos um link de confirmação para ${user.email}. Verifique sua caixa de entrada (e a pasta de spam).`;
+        showView('verify');
+        return;
+      }
+
+      // Logado + e-mail verificado → verifica se o perfil está completo
+      try {
+        // Busca o documento do usuário no Firestore
+        const snap = await getDoc(doc(db, 'users', user.uid));
+
+        if (!snap.exists() || !snap.data().profileComplete) {
+          // Documento não existe ou perfil incompleto → vai para onboarding
+          window.location.replace('onboarding.html');
+        } else {
+          // Tudo certo → vai para a galeria
+          window.location.replace('gallery.html');
+        }
+      } catch {
+        // Em caso de erro → assume que pode acessar a galeria
+        window.location.replace('gallery.html');
+      }
+    });
+
+    // ─── Mensagens de Erro Traduzidas ──────────────────────────────────────
+    // O Firebase retorna códigos de erro em inglês. Aqui traduzimos para o usuário.
+    // Para adicionar mais erros: procure o código em console e adicione a tradução.
+    const PT_ERRORS = {
+      'auth/email-already-in-use':    'Este e-mail já está sendo usado por outra conta.',
+      'auth/invalid-email':           'E-mail inválido. Verifique o formato.',
+      'auth/weak-password':           'Senha muito fraca. Use pelo menos 6 caracteres.',
+      'auth/user-not-found':          'Nenhuma conta encontrada com este e-mail.',
+      'auth/wrong-password':          'Senha incorreta. Tente novamente.',
+      'auth/invalid-credential':      'E-mail ou senha incorretos.',
+      'auth/too-many-requests':       'Muitas tentativas. Aguarde alguns minutos e tente de novo.',
+      'auth/network-request-failed':  'Sem conexão. Verifique sua internet.',
+      'auth/user-disabled':           'Esta conta foi desativada.',
+      'auth/operation-not-allowed':   'Login com e-mail não está ativo. Contate o suporte.',
+    };
+    // Se o código não estiver mapeado, usa uma mensagem genérica
+    const getErrMsg = (code) => PT_ERRORS[code] || 'Ocorreu um erro inesperado. Tente novamente.';
+
+    // ─── Funções Auxiliares ───────────────────────────────────────────────
+
+    // Mostra a mensagem de erro com o texto fornecido
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'flex';
+    }
+    // Esconde a mensagem de erro
+    function hideError(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Alterna o estado de loading de um botão:
+    // loading=true  → esconde texto, mostra spinner, desativa botão
+    // loading=false → mostra texto, esconde spinner, ativa botão
+    function setLoading(textId, loaderId, btnId, loading) {
+      document.getElementById(textId).style.display  = loading ? 'none' : '';
+      document.getElementById(loaderId).style.display = loading ? '' : 'none';
+      document.getElementById(btnId).disabled         = loading;
+    }
+
+    // ─── Gerenciamento de Views ───────────────────────────────────────────
+    // Troca qual tela está visível dentro do card.
+    // "window.showView" é necessário para ser acessível pelos onclick= no HTML.
+    window.showView = function(view) {
+      // Esconde todas as views
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      // Mostra a view correspondente (remove a classe .hidden)
+      document.getElementById({
+        login:    'viewLogin',
+        register: 'viewRegister',
+        verify:   'viewVerify',
+        reset:    'viewReset'
+      }[view])?.classList.remove('hidden');
+
+      // Mostra as tabs somente nas telas de login e cadastro
+      const tabs = document.getElementById('tabs');
+      tabs.style.display = (view === 'login' || view === 'register') ? '' : 'none';
+      // Marca a tab ativa como "active"
+      document.getElementById('tabLogin')?.classList.toggle('active', view === 'login');
+      document.getElementById('tabRegister')?.classList.toggle('active', view === 'register');
+    };
+
+    // ─── Botão Olho (Mostrar/Ocultar Senha) ─────────────────────────────
+    // Configura o comportamento do botão olho para um par btn+input
+    function setupToggle(btnId, inputId) {
+      document.getElementById(btnId)?.addEventListener('click', () => {
+        const inp  = document.getElementById(inputId);
+        const icon = document.querySelector(`#${btnId} .material-symbols-outlined`);
+        // Alterna entre password (oculto) e text (visível)
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        // Alterna o ícone entre "olho aberto" e "olho riscado"
+        icon.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
+      });
+    }
+    // Configura os três campos de senha da página
+    setupToggle('toggleLoginPwd', 'loginPassword');
+    setupToggle('toggleRegPwd', 'regPassword');
+    setupToggle('toggleRegConfirmPwd', 'regPasswordConfirm');
+
+    // ─── Indicador de Força da Senha ────────────────────────────────────
+    // Avalia a senha em 5 critérios e atualiza a barra colorida
+    document.getElementById('regPassword')?.addEventListener('input', (e) => {
+      const pwd  = e.target.value;
+      const fill = document.getElementById('pwdStrengthFill');
+      let strength = 0;
+      if (pwd.length >= 6)  strength++;           // mínimo de 6 caracteres
+      if (pwd.length >= 10) strength++;           // 10 ou mais caracteres
+      if (/[A-Z]/.test(pwd)) strength++;          // contém letra maiúscula
+      if (/[0-9]/.test(pwd)) strength++;          // contém número
+      if (/[^A-Za-z0-9]/.test(pwd)) strength++;  // contém caractere especial
+
+      // Cores: vermelho → laranja → amarelo → verde claro → verde escuro
+      const colors = ['#ff6b6b','#ffb347','#ffd700','#4ade80','#22c55e'];
+      fill.style.width      = `${(strength / 5) * 100}%`;
+      fill.style.background = colors[strength - 1] || 'transparent';
+    });
+
+    // ─── FORMULÁRIO DE LOGIN ─────────────────────────────────────────────
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault(); // impede o reload da página (comportamento padrão do form)
+      hideError('loginError');
+
+      const email    = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      // Validação básica no frontend
+      if (!email || !password) { showError('loginError', 'Preencha todos os campos.'); return; }
+
+      setLoading('btnLoginText', 'btnLoginLoader', 'btnLogin', true); // mostra spinner
+
+      try {
+        // Faz login no Firebase Authentication
+        // O onAuthStateChanged acima vai detectar o login e redirecionar
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        // Mostra a mensagem de erro traduzida
+        showError('loginError', getErrMsg(err.code));
+        setLoading('btnLoginText', 'btnLoginLoader', 'btnLogin', false); // esconde spinner
+      }
+    });
+
+    // ─── FORMULÁRIO DE CADASTRO ──────────────────────────────────────────
+    document.getElementById('formRegister').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError('registerError');
+
+      const email    = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm  = document.getElementById('regPasswordConfirm').value;
+
+      // Validações no frontend (antes de chamar o Firebase)
+      if (!email || !password || !confirm) { showError('registerError', 'Preencha todos os campos.'); return; }
+      if (password.length < 6) { showError('registerError', 'A senha deve ter pelo menos 6 caracteres.'); return; }
+      if (password !== confirm) { showError('registerError', 'As senhas não coincidem.'); return; }
+
+      setLoading('btnRegisterText', 'btnRegisterLoader', 'btnRegister', true);
+      try {
+        // Cria a conta no Firebase Authentication
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Envia o e-mail de verificação para o endereço cadastrado
+        await sendEmailVerification(cred.user);
+        // Atualiza o texto da tela de verificação com o e-mail real
+        document.getElementById('verifyEmailText').textContent =
+          `Enviamos um link de confirmação para ${email}. Verifique sua caixa de entrada (e a pasta de spam).`;
+        // Mostra a tela de verificação
+        showView('verify');
+      } catch (err) {
+        showError('registerError', getErrMsg(err.code));
+        setLoading('btnRegisterText', 'btnRegisterLoader', 'btnRegister', false);
+      }
+    });
+
+    // ─── VERIFICAÇÃO DE E-MAIL ───────────────────────────────────────────
+    // Chamada quando o usuário clica em "Já confirmei — Continuar"
+    window.checkVerified = async function() {
+      hideError('verifyError');
+      const user = auth.currentUser; // pega o usuário logado atualmente
+      if (!user) { showView('login'); return; }
+
+      try {
+        // Recarrega os dados do usuário do servidor
+        // (necessário para atualizar a propriedade emailVerified)
+        await user.reload();
+
+        if (user.emailVerified) {
+          // E-mail confirmado → verifica perfil e redireciona
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          window.location.replace(!snap.exists() || !snap.data().profileComplete
+            ? 'onboarding.html' : 'gallery.html');
+        } else {
+          // Ainda não verificou → mostra erro
+          showError('verifyError', 'E-mail ainda não confirmado. Verifique sua caixa de entrada.');
+        }
+      } catch {
+        showError('verifyError', 'Erro ao verificar. Tente novamente.');
+      }
+    };
+
+    // Reenvia o e-mail de verificação.
+    // Após reenviar, desativa o botão por 30 segundos (evita spam)
+    window.resendVerification = async function() {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        await sendEmailVerification(user);
+        const btn = document.getElementById('btnResend');
+        btn.textContent = 'E-mail reenviado!';
+        btn.disabled    = true;
+        // Reativa o botão após 30 segundos
+        setTimeout(() => { btn.textContent = 'Reenviar e-mail'; btn.disabled = false; }, 30000);
+      } catch {
+        showError('verifyError', 'Aguarde antes de reenviar o e-mail.');
+      }
+    };
+
+    // Faz logout e volta para a tela de login
+    window.logoutAndReset = async function() {
+      await signOut(auth);
+      showView('login');
+    };
+
+    // ─── RECUPERAÇÃO DE SENHA ────────────────────────────────────────────
+    // Envia um e-mail com link para criar nova senha
+    document.getElementById('formReset').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError('resetError');
+      document.getElementById('resetSuccess').style.display = 'none'; // esconde msg de sucesso anterior
+
+      const email = document.getElementById('resetEmail').value.trim();
+      if (!email) { showError('resetError', 'Digite seu e-mail.'); return; }
+
+      setLoading('btnResetText', 'btnResetLoader', 'btnReset', true);
+      try {
+        // Envia o e-mail de redefinição via Firebase
+        await sendPasswordResetEmail(auth, email);
+        // Mostra mensagem de sucesso (link verde)
+        document.getElementById('resetSuccess').style.display = 'block';
+      } catch (err) {
+        showError('resetError', getErrMsg(err.code));
+      }
+      setLoading('btnResetText', 'btnResetLoader', 'btnReset', false);
+    });
+  </script>
+</body>
+</html>

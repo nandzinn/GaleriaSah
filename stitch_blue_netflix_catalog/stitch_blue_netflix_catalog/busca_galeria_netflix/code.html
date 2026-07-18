@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Hide scrollbars but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(182, 196, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Infinite row fade effect */
+        .fade-edge {
+            mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        }
+
+        @keyframes pulse-azure {
+            0%, 100% { box-shadow: 0 0 0px rgba(173, 198, 255, 0); }
+            50% { box-shadow: 0 0 15px rgba(173, 198, 255, 0.4); }
+        }
+
+        .photo-card-hover:hover {
+            transform: scale(1.05);
+            border-color: #adc6ff;
+            z-index: 10;
+            animation: pulse-azure 2s infinite;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#2e3447",
+                    "outline": "#8b90a0",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#d8e2ff",
+                    "secondary-fixed": "#d6e3ff",
+                    "surface-container-lowest": "#070d1f",
+                    "surface-container-low": "#151b2d",
+                    "on-tertiary-container": "#00226e",
+                    "surface": "#0c1324",
+                    "secondary-container": "#3c4962",
+                    "tertiary-container": "#748de1",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#b9c7e4",
+                    "surface-variant": "#2e3447",
+                    "background": "#0c1324",
+                    "primary-fixed-dim": "#adc6ff",
+                    "on-surface-variant": "#c1c6d7",
+                    "on-surface": "#dce1fb",
+                    "surface-tint": "#adc6ff",
+                    "surface-dim": "#0c1324",
+                    "primary-container": "#4b8eff",
+                    "on-background": "#dce1fb",
+                    "on-primary": "#002e69",
+                    "surface-container-high": "#23293c",
+                    "inverse-on-surface": "#2a3043",
+                    "tertiary-fixed": "#dce1ff",
+                    "on-primary-fixed": "#001a41",
+                    "error": "#ffb4ab",
+                    "tertiary": "#b6c4ff",
+                    "on-error": "#690005",
+                    "on-secondary-container": "#abb9d6",
+                    "on-secondary-fixed-variant": "#39475f",
+                    "on-tertiary-fixed-variant": "#264191",
+                    "on-primary-container": "#00285c",
+                    "on-tertiary-fixed": "#00164e",
+                    "on-primary-fixed-variant": "#004493",
+                    "outline-variant": "#414755",
+                    "primary": "#adc6ff",
+                    "secondary-fixed-dim": "#b9c7e4",
+                    "surface-container": "#191f31",
+                    "on-secondary-fixed": "#0d1c32",
+                    "surface-bright": "#33394c",
+                    "inverse-primary": "#005bc1",
+                    "tertiary-fixed-dim": "#b6c4ff",
+                    "on-tertiary": "#05297a",
+                    "on-secondary": "#233148",
+                    "inverse-surface": "#dce1fb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "mobile-margin": "1rem",
+                    "page-margin": "4rem",
+                    "gutter": "0.75rem",
+                    "row-gap": "2.5rem"
+            },
+            "fontFamily": {
+                    "hidden": ["Inter"]
+            },
+            "fontSize": {
+                    "hidden": ["0px", {"lineHeight": "0px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-hidden antialiased min-h-screen selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full bg-transparent z-50 flex justify-between items-center px-mobile-margin h-16 bg-gradient-to-b from-surface-container-lowest to-transparent">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-2xl hover:scale-110 transition-transform cursor-pointer">lens</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-primary text-2xl hover:scale-110 transition-transform cursor-pointer">search</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-secondary/30 active:scale-95 transition-all duration-300 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A close-up high-end portrait of a young woman with soft cinematic lighting, deep blue color grading, and a minimalist aesthetic. She has a serene expression, with subtle azure highlights in her hair, reflecting the obsidian blue atmosphere of a premium digital gallery. The image is crisp, professional, and intimate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnvUJjdD7kYUI2SJuLSRpoPa62vk_Hv9EXqoSuUv3WJmpSlvv-DZl7GToa3GnbIhQa0jZFr6XzaOa_J7XSEMgxZkgps41uANMJDeSOkKn6_Pu0sAEr4sj3oVO1CQ0-XwQTDOhE7I_l193kCRZxG185dQo6jf4j9Lr5o5sDD4ew6oGz9paH8zmfE1_GmVe789Hw71EcQVP1Tp8wYSDB8anL4pH8v_dGIVeXRykkJrzrs6PhyZQSxIW6"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 overflow-hidden">
+<!-- Chapter 1: Portrait Collection -->
+<section class="mb-row-gap">
+<div class="px-mobile-margin md:px-page-margin mb-4 flex justify-between items-center">
+<div class="h-1 w-12 bg-primary/40 rounded-full"></div>
+</div>
+<div class="relative">
+<div class="flex gap-1 overflow-x-auto no-scrollbar px-mobile-margin md:px-page-margin fade-edge">
+<!-- Repeated Portrait Cards -->
+<div class="flex-none w-40 md:w-56 aspect-[2/3] photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" data-alt="A portrait-oriented artistic photo of a young woman in a high-fashion pose, captured in a deep blue, moody environment. Soft light catches her features, emphasizing a high-end cinematic quality. The palette is dominated by obsidian and azure tones, creating a cohesive, immersive visual storytelling experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0hveCVAG1BbzZ1h369NtQhzgG5700x6HcRxvkoAMgGh79__SQii1dAUkrxjvew21EOVRg6aGZrapHbllVnlK-kyoZC0alc9DpUF7Df6shpQ1JXg0MaKogwC8EBAeoRE-ey_ica-lWikeKbFjp-L1s4p7zCpEYvWsDqCKTRlZfS3OpX43c6qOOkXl1QY60ybE3mx8uNgiQjMxR5-j7z6om7C19KJTYlutwybG2Vnmvor0HyTSq7Rhp"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-[2/3] photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" data-alt="A high-end portrait of the same young woman, looking away from the camera in a pensive mood. The setting is a minimalist, blue-lit studio space with soft shadows and sharp clarity. The composition follows professional photography standards, using a shallow depth of field to make the subject pop against the obsidian blue background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfvFjZ6PIvyNRDIt03fm4OVo1_tE_RKqKHvsqfDu4xytlV1ain7UrEX1TuKLCosY3mqIt9puFhqhElUI7hcOdxHzgf5v_A6_Riabi6pLpa6yzVr5qgr2FoFIvwI-2KcXmbpxAbRdovdEbYskUqYmvpVLAohiZnvpP0Td9D8BonA_kLCiV39b98UPU1h94xEuJgRZux5MK5fZHzHty11kMgVb3nuC8P-xsLG5FVoOkZYmgZl9W29mn4"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-[2/3] photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" data-alt="A striking portrait of a young woman with a cinematic blue wash. She is wearing a dark, textured garment that blends into the deep blue shadows. The lighting is dramatic and directional, creating a sense of intimacy and high-end elegance typical of a luxury streaming service's visual catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnGo5xM_oA85wJ64jozJRuTg73Kabbtz9vaanDqXMJzFg22jQRf69TT3OSpHa06P5VxNKisMFUM3FzIx_WuEJKu_tEKgk0s6x0qZYD1MhZLsgEMXs61hpfQVkZOc2UESR-UHMrfaR5yBmGSzvK1p-4NnTI2sNzDyfGOqrqT-4HAI19w5Bkdi3rmMjhxNgtyvSkPa2OojS47QGuddpUz9vGIlApV_pDeE1cwkJ6d0lh94nNL8dj5wJf"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-[2/3] photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" data-alt="Intimate close-up of a young woman's face, bathed in cool azure light. Her expression is calm and ethereal. The background is a blurred obsidian blue texture. Every detail of her features is rendered with high precision, maintaining a consistent minimalist and emotive brand identity across the collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZONI78Hudi6yoQsr2ep-rjFHWOEiWe5vyptnsP9CZbGSptU9Qeta3bCZvncDacCPaBx2tfzvoaZ5RBj7SEtFlm0N4B8-y5PSv0Ad8q9Xh9jVebOHdtj89RitUR9yHwZxQfP2KBGyS9lQlUeSCvb5XYD5PE1m1sZY6LUtpQMIfrLT7HX96e7L1O9Innr6WLDYJpVoshHuaRu9L-i2_WgJ64BCXtO-WtrdChNWm4ssvjTx-Ivve9oH0"/>
+</div>
+<div class="flex-none w-40 md:w-56 aspect-[2/3] photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" data-alt="A mid-shot of the woman standing in a dimly lit, minimalist architectural space. The blue color palette is pervasive, creating a cohesive atmospheric feel. The lighting highlights the contours of her silhouette against the dark, high-end environment, emphasizing the cinematic storytelling aspect of the UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsochn6ED0Wev29UOG70luLooyFGwRoxtTbapc2D7UHVFcd1Iu57NXI5jPZADKzlG4BzVlzpBi3qm9y5QYvYr5nq9YoPaV645Y3FEW5ZwWBFTf56x2-YBX_K0oA_vabkqfU1XkrA8iST7OFuQd9bVZqIfG7924mZkhlXWU4gJA_eYXx6pfQwJpHL5JhFe5qLHgqzT9txQWhesdPUDXkO36ByncDUDIbbn_yMqH6_BMFBqijTqPzsMD"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Chapter 2: Wide Cinematic Perspective -->
+<section class="mb-row-gap">
+<div class="px-mobile-margin md:px-page-margin mb-4 flex justify-between items-center">
+<div class="h-1 w-24 bg-tertiary/20 rounded-full"></div>
+</div>
+<div class="relative">
+<div class="flex gap-1 overflow-x-auto no-scrollbar px-mobile-margin md:px-page-margin fade-edge">
+<div class="flex-none w-72 md:w-96 aspect-video photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" data-alt="A wide cinematic landscape shot of a young woman walking through a futuristic, blue-lit corridor. The composition is expansive and minimalist, using leading lines to draw the eye. The lighting is sophisticated, with azure neon accents reflecting off polished obsidian surfaces, creating a high-end streaming platform aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnCyWTO5X7pDGFDZvV4X1hT5VE4wxT0jylLNIsIfW7tLoBG952fL3ZHvb__xxi6fBC4GXuvtO0v06XDyFCq2cFbKOd7yivmFHGgy5Ag4XTEftUNltFDNoC-Ffx0T2MQfXvg48JT6GIp_wrv2vw6S8EGjR_5YZ3qcosgHa3mJ3XtGREXHUTUKhYZaVtUeML7XuUqTBFdaKnSnfVTkvEC1LGC73PWvXNNfefk1z9QJX6oeTymSFQyrn2"/>
+</div>
+<div class="flex-none w-72 md:w-96 aspect-video photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" data-alt="A cinematic wide-angle view of a young woman sitting in a sleek, minimalist environment. The room is filled with a soft blue haze, and large windows show a dark, obsidian night sky. The scene is quiet and evocative, prioritizing mood and visual storytelling over complex information, perfectly fitting the minimalist blue UI design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmt9DHnm-Oa4ObX42THDGOZQhB3I02Pmnb_GJIijcRlRcbi7NUjH8SrKJTJz2mmKACM88ApOFm0TDR9sHRqRY_krVbUX-WLNbvbuBb32NZPlf0orWnUth0FxMPRKngriDNHq_ASU3-lxQJuqX6VmElBfy4EhxX-agSFcKk09XWsR0-zr07t7Njh_6yhi_x_lpiIZsDtv8FECLFBa8RSIa9CZVUAJULhiOTDrYCiqvNJI8aL3_xWb7n"/>
+</div>
+<div class="flex-none w-72 md:w-96 aspect-video photo-card-hover border border-secondary/20 transition-all duration-500 cursor-pointer overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" data-alt="A high-contrast cinematic shot of a young woman in silhouette against a glowing azure background. The composition is artistic and minimalist, emphasizing shape and form. The deep blue tones and obsidian shadows create a sophisticated, low-light environment that makes the subtle highlights of the subject stand out." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe6aiTtgVny1jondc6jFg7cDDdMkcbfwGR49_y-_3842z08ICTMoEHjEqiPwOkDKt6gayqbnEBgoOTxYeaW6XvTaNThoGPth6iGOSUWK_gGU_-rRukzlP6OILmR4THrgIPcbWUUeJRzZfhxyBvTfq2mSTSxYUrSNoS4qtj_ZwmFYyUGChTETuR1EHjBgOgxuuyOK1uHAuFfTvCw8xKsGtdIjt5hphAQx9CHjBCJ2YrC6jL_i-b88cP"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Chapter 3: Artistic Squares -->
+<section class="mb-row-gap">
+<div class="px-mobile-margin md:px-page-margin mb-4">
+<div class="h-1 w-8 bg-primary/30 rounded-full"></div>
+</div>
+<div class="grid grid-cols-3 md:grid-cols-6 gap-1 px-mobile-margin md:px-page-margin">
+<!-- Grid of Square Photos -->
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A square-cropped artistic photo focusing on the eyes of a young woman, illuminated by a sharp blue light. The image is highly detailed, showing a high-end cinematic quality with deep obsidian tones and vibrant azure highlights, maintaining the intimate and emotive feel of the gallery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAg58ta0bUjXoOiBeE2cweqNA5rTUxIH4wmRVu8voglAUDSDrHNy6ohEUG3dB9HwU5zQTnR_lSNa9__hUvXXdXybJOuouyWAA8MsEF1Ln4nNhPYhiIvkG3HIV1SCc4LyhHkBEP_ccvWRY_XJUy_aRLKQQBjxIInVezkybNNIYq-OmWUJICuH6T-i15C6453TZT313QmPhv4Lio1-wx6xHkat5Lc1crjfVyPc1eKTZ8HS9o4nksTPxqX"/>
+</div>
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A square-cropped detail shot of a young woman's hands holding a glowing blue object. The lighting is soft and atmospheric, blending into the dark blue background. The aesthetic is minimalist and high-end, focusing on subtle visual cues rather than explicit text or information." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH00Tg0kuCZYvCNyUPjnzTAVCogVRst_rSaDcyVIbFweEynN036OwZYQ-NS7-5hCLRBOrFuLf8kIEgntJYHmet_ZSx1crAVD7aKt-vfPbasA1wVhxwWsxhQ_jTEoJVgvg29FBla7rYetAOiUUwFDKVvuFA6MwzSrVttqtm6Cv7fhe9YPmeJU0p6uaYa9X5-u0yRl641mqK8RhJkjWYIROz6cKhYlpiz7PdvSLQlxZ4B86KVWvInDjN"/>
+</div>
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A square-cropped portrait of a young woman with her hair flowing in a cool blue breeze. The image is caught in a moment of motion, blurred slightly for artistic effect. The color palette is strictly obsidian and azure, creating a cohesive and sophisticated look for the minimalist photo collection." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoYElZZyD3GiHcl7hJCcrxNzA4bQV9NCldMwMC4EQKT3Aq5DhhTbzlKGMR5VO46j7uZ79XrR8Z-Indqc6lFdgqrs44eS8lsxcLGs5hDVC2CdDoKWx6ntxa8Bg1tHStgiJugo_JCZmPkZQbTznUdXAAvSmUk368VGetkBvQHPJqGCtvEMzytngFs9lgyQrraZhN0L41BRSkqh9EELAExZYvpXPoQLlnBy-QTWDtOnhXxQ3kcWD5GmmF"/>
+</div>
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close-up square portrait of the same young woman, smiling subtly in a deep blue environment. The lighting is high-key but maintains the cool blue temperature. The image feels intimate and personal, like a hidden gem in a vast cinematic streaming library of memories." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJnRRYvkZXECiK4kOP9muzMcvRjnI8qo1JdF6f0iIAPREalglmNGjhrHGxyiJekmR4b9mTaxEorjMF7pE99KbZQtqVgUdXIphYitycehMiAREpj6D0p9oMKoz7jQd_lJuojkRrtO27-jUGkBVotBcvTfEhp7dWfEABu6fa3Knr6AH6HYVJDpj7iSrXf5fyM4CSuqVL1aWJGHlr25-aQDwY35WywKpAqXpKRYa9N7jVBUGfEwh7d96A"/>
+</div>
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A minimalist square shot of the young woman from a distance, positioned in the lower corner of the frame against a vast obsidian blue wall. The composition is heavy on negative space, reinforcing the high-end, minimalist design language of the overall user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkWZ2zlzjdsle-q_O9QhtKpO--wXPdZMtibOLeE4hf1bEthIeQENfUZXczxbhyPK1pbhtzaj1wY_4PSAFDY5G5dkbAKaDC8xrZJcoSKh16SCN6SCsxku7_DwmhtD4hbwu0_t2lM92cVZdm6H4dzeM6SQkdEg3S_wDR5rqj0qqUmqjVUJQC97bgJQDCACxLJ39T91_rfrWYf16p9yqypO2kCtbUs9NI4Dw5JackFZ1YftdOHDQzwZm-"/>
+</div>
+<div class="aspect-square photo-card-hover border border-secondary/20 cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A square-cropped artistic shot of the young woman's profile, highlighted by a single strip of blue light. The rest of the frame is deep obsidian. The mood is high-end, sophisticated, and evocative, designed to make the user feel like they are exploring a curated artistic vision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQDcfKEd07G5EP3ulVXOi4hwXIhHyaTFhT9mRH_nNKii1vyiFv9u31khyUYVrXOmD9tqlIbC9yXDMwHlGR5dxuKhJYJy6d8WPbWuOxPBEZfZ1suvgBu43K7n9ReJgFGc8DjWRC-aHdO2YTggQYWYi_M8l2xw77kWO75kYE7QjX-FNnGDez-iVjsWgjn9wt5SFXBHjVtcwrWD9O9zKjMC3nIBuWxDp1fH7pVy-EoUc08u1-Mx2Ve8iZ"/>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 px-8 py-4 bg-tertiary/10 rounded-full backdrop-blur-xl border border-secondary/20 shadow-2xl">
+<button class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 duration-200">grid_view</button>
+<button class="material-symbols-outlined text-primary scale-125 transition-all duration-200">search</button>
+<button class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 duration-200">favorite</button>
+<button class="material-symbols-outlined text-tertiary opacity-60 hover:text-primary-fixed-dim transition-colors active:scale-90 duration-200">person</button>
+</nav>
+<!-- Interaction Script -->
+<script>
+        document.querySelectorAll('.photo-card-hover').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1.05)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple horizontal scroll wheel support for the carousels
+        const scrollers = document.querySelectorAll('.no-scrollbar');
+        scrollers.forEach(scroller => {
+            scroller.addEventListener('wheel', (evt) => {
+                evt.preventDefault();
+                scroller.scrollLeft += evt.deltaY;
+            });
+        });
+    </script>
+</body></html>

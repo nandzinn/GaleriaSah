@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria</title>
+
+  <!--
+    ══════════════════════════════════════════════════════
+    index.html — ROTEADOR INTELIGENTE
+    ══════════════════════════════════════════════════════
+    Este arquivo é a página inicial do app. Ele NÃO tem
+    conteúdo visual próprio — só exibe um spinner de
+    carregamento enquanto decide para onde redirecionar
+    o usuário dependendo do estado de login.
+
+    Fluxo de redirecionamento:
+    ┌─────────────────────────────────────────────────┐
+    │ Usuário acessa index.html                        │
+    │         ↓                                        │
+    │ [Não logado ou e-mail não verificado]            │
+    │         → redireciona para auth.html             │
+    │         ↓                                        │
+    │ [Logado + verificado, mas perfil incompleto]     │
+    │         → redireciona para onboarding.html       │
+    │         ↓                                        │
+    │ [Logado + verificado + perfil completo]          │
+    │         → redireciona para gallery.html          │
+    └─────────────────────────────────────────────────┘
+  -->
+
+  <style>
+    /* Fundo escuro enquanto carrega */
+    body {
+      margin: 0;
+      background: #070d1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;       /* 100dvh = altura total da tela, incluindo barra do browser mobile */
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Spinner giratório de carregamento */
+    .loader {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(173,198,255,0.15); /* anel externo semitransparente */
+      border-top-color: #adc6ff;                /* topo colorido que gira */
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;     /* gira continuamente */
+    }
+    /* Define a animação "spin": rotaciona 360° */
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <!-- Spinner visível enquanto o Firebase verifica o estado de login -->
+  <!-- aria-hidden="true" poderia ser adicionado aqui pois é visual puro -->
+  <div class="loader"></div>
+
+  <!--
+    Script de módulo ES6: carrega o Firebase e decide o redirecionamento.
+    type="module" é necessário para usar "import" do Firebase CDN.
+  -->
+  <script type="module">
+    // Importa os serviços configurados no arquivo firebase-config.js
+    import { auth, db } from './js/firebase-config.js';
+
+    // Importa funções específicas do Firebase Auth e Firestore
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ── onAuthStateChanged ──────────────────────────────────────────
+    // Este é o "observador de login": o Firebase chama esta função
+    // automaticamente quando o estado de autenticação muda, ou logo
+    // ao carregar a página. O parâmetro "user" será:
+    //   • null   → não está logado
+    //   • objeto → está logado (contém uid, email, emailVerified, etc.)
+    onAuthStateChanged(auth, async (user) => {
+
+      // Caso 1: não há usuário logado → vai para tela de login/cadastro
+      if (!user) {
+        window.location.replace('auth.html');
+        return; // para aqui
+      }
+
+      // Caso 2: logado mas e-mail ainda não foi verificado → volta para auth
+      // (a tela de auth vai mostrar a tela de verificação de e-mail)
+      if (!user.emailVerified) {
+        window.location.replace('auth.html');
+        return;
+      }
+
+      // Caso 3: logado e verificado → verifica se o perfil foi completado
+      try {
+        // Busca o documento do usuário no Firestore (banco de dados)
+        // doc(db, 'users', user.uid) → referência ao documento na coleção "users"
+        // com ID igual ao UID do usuário autenticado
+        const snap = await getDoc(doc(db, 'users', user.uid));
+
+        // Se o documento não existe OU o campo "profileComplete" não é true
+        // → redireciona para a tela de configuração de perfil (onboarding)
+        if (!snap.exists() || !snap.data().profileComplete) {
+          window.location.replace('onboarding.html');
+        } else {
+          // Perfil completo → vai para a galeria principal
+          window.location.replace('gallery.html');
+        }
+      } catch {
+        // Se houver algum erro de rede/permissão → envia para galeria
+        // (falha segura: melhor mostrar a galeria do que travar)
+        window.location.replace('gallery.html');
+      }
+    });
+  </script>
+</body>
+</html>
