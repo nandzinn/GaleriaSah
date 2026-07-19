@@ -27,7 +27,9 @@ Cada versão usa estas seções para classificar as alterações:
 > Alterações que ainda estão em desenvolvimento e ainda não têm versão definida.
 > Quando for lançar, mova esta seção para uma versão numerada.
 
-*(vazio por enquanto)*
+### Adicionado
+- `docs/ROADMAP.md`: roadmap completo do projeto com versões planejadas (v1.2 até v2.0), baseado na pesquisa de mercado (37 respostas no Google Forms)
+- `docs/NOTAS_AMANHA.md`: notas da sessão de planejamento de 19/07/2026 com pontos a discutir nas próximas etapas
 
 ---
 
