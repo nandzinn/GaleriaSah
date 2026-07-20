@@ -24,13 +24,13 @@ Cada versão usa estas seções para classificar as alterações:
 
 ## [Não lançado]
 
-> Alterações que ainda estão em desenvolvimento e ainda não têm versão definida.
-> Quando for lançar, mova esta seção para uma versão numerada.
+> Alterações feitas em 20/07/2026 — ainda não lançadas como versão.
+> Quando for lançar, mova esta seção para `[1.2.0]`.
 
 ### Adicionado
 - `docs/ROADMAP.md`: roadmap completo do projeto com versões planejadas (v1.2 até v2.0), baseado na pesquisa de mercado (37 respostas no Google Forms)
 - `docs/NOTAS_AMANHA.md`: notas da sessão de planejamento de 19/07/2026 com pontos a discutir nas próximas etapas
-- `public_profile.html`: nova página de perfil público visitável (v1.2.0 — Descoberta & Social)
+- `public_profile.html`: nova página de **perfil público visitável** (início da v1.2.0 — Descoberta & Social)
   - Acesso via `public_profile.html?user=USERNAME`
   - Exige que o visitante esteja **logado** para visualizar
   - Exibe: avatar, username, bio, estatísticas (galerias, fotos, membro desde)
@@ -44,7 +44,28 @@ Cada versão usa estas seções para classificar as alterações:
 ### Alterado
 - `profile.html`: adicionado botão **"Ver como público"** no modo de visualização
   - Abre `public_profile.html?user=USERNAME` em nova aba
-  - Fica oculto quando o perfil está configurado como privado
+  - Fica oculto automaticamente quando o perfil está configurado como privado
+  - Função `viewPublicProfile()` adicionada ao JS
+- `gallery.html`: **galerias placeholder** — sempre exibe no mínimo 3 galerias na tela
+  - Se o usuário tem 0 galerias reais → exibe 3 placeholders com card "+"
+  - Se tem 1 real → exibe 2 placeholders; se tem 2 → exibe 1 placeholder
+  - Clicar no `+` ou no lápis do placeholder abre o modal "Nova Galeria"
+  - Constante `MIN_GALLERIES = 3` controla o mínimo; facilmente ajustável
+- `gallery.html`: **botão "+" movido para o fim do carrossel**
+  - Antes ficava fixo no início; agora sempre aparece após a última foto
+  - Cada foto adicionada empurra o "+" para o final
+  - Desaparece automaticamente quando a galeria atinge 100 fotos (limite)
+- `gallery.html`: **renomear galeria clicando no nome**
+  - O nome da galeria agora é clicável (hover com sublinhado pontilhado azul)
+  - Clique abre diretamente o modal de renomear, sem passar pelas configurações (⋮)
+  - Função `quickRenameGallery(galleryId)` adicionada ao JS
+  - O `⋮` continua com todas as opções (renomear, privacidade, colaboradores, excluir)
+
+### Corrigido
+- `public_profile.html`: corrigido bug onde a tela ficava presa no spinner de carregamento
+  - **Causa**: queries Firestore com `orderBy` + `where` exigem índice composto (não criado)
+  - **Correção**: removido `orderBy` das queries de galerias e fotos no perfil público
+  - O estado de perfil agora é exibido antes das galerias carregarem (melhor UX)
 
 ---
 
