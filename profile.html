@@ -399,6 +399,11 @@
             <span class="material-symbols-outlined">edit</span>
             Editar perfil
           </button>
+          <!-- Botão que abre o perfil público em nova aba (visível apenas quando público) -->
+          <button class="btn-edit" id="btnViewPublic" style="margin-top:8px;border-color:rgba(var(--rgb-primary),.15)" onclick="viewPublicProfile()">
+            <span class="material-symbols-outlined">open_in_new</span>
+            Ver como público
+          </button>
         </div>
       </div>
 
@@ -580,6 +585,8 @@
       const isPrivate = !!p.isProfilePrivate; // !! converte para boolean
       document.getElementById('privacyBadgeIcon').textContent = isPrivate ? 'lock' : 'lock_open';
       document.getElementById('privacyBadgeText').textContent = isPrivate ? 'Perfil privado' : 'Perfil público';
+      // Botão "Ver como público": só aparece quando o perfil não é privado
+      document.getElementById('btnViewPublic').style.display  = isPrivate ? 'none' : 'flex';
 
       // Preenche o formulário de edição com os valores atuais
       document.getElementById('editUsername').value              = p.username || '';
@@ -632,6 +639,14 @@
       document.getElementById('viewMode').style.opacity = open ? '0.5' : '1';
       // Rola para o formulário de edição quando abrir
       if (open) document.getElementById('editForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    // Abre o perfil público do próprio usuário em uma nova aba
+    // Permite que o dono veja como visitantes vêem seu perfil
+    window.viewPublicProfile = function() {
+      const username = userProfile?.username;
+      if (!username) return;
+      window.open(`public_profile.html?user=${encodeURIComponent(username)}`, '_blank');
     };
 
     // ─── Verificação de Username em Tempo Real ───────────────────────────

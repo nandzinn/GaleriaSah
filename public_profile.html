@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — Galeria</title>
+  <meta name="description" content="Veja o perfil e as galerias públicas deste usuário na Galeria.">
+
+  <!--
+    ══════════════════════════════════════════════════════
+    public_profile.html — PERFIL PÚBLICO VISITÁVEL
+    ══════════════════════════════════════════════════════
+    Exibe o perfil e as galerias PÚBLICAS de outro usuário.
+
+    Como funciona:
+      1. Lê ?user=USERNAME da URL
+      2. Exige que o visitante esteja logado (auth guard)
+      3. Busca o usuário no Firestore pelo username
+      4. Se isProfilePrivate == true → tela "Perfil privado"
+      5. Se não encontrado → tela "Usuário não encontrado"
+      6. Se público → exibe avatar, bio, estatísticas e galerias em carrosséis
+
+    Estados da página:
+    ┌───────────────────────────────────────────────────┐
+    │  #stateLoading  → spinner inicial                 │
+    │  #stateNotFound → usuário não existe              │
+    │  #statePrivate  → perfil existe mas é privado     │
+    │  #stateProfile  → perfil público (conteúdo real)  │
+    └───────────────────────────────────────────────────┘
+  -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══ VARIÁVEIS DE COR — idênticas ao gallery.html ═══════════════════ */
+    :root {
+      --bg-main:      #070d1f;
+      --bg-surface:   #0c1324;
+      --bg-card:      #131929;
+      --color-primary:#adc6ff;
+      --color-mid:    #748de1;
+      --color-deep:   #4b8eff;
+      --color-soft:   #b9c7e4;
+      --text-main:    #dce1fb;
+      --text-muted:   #c1c6d7;
+      --text-dim:     #8b90a0;
+      --rgb-primary:  173,198,255;
+      --rgb-mid:      116,141,225;
+      --error:        #ff6b6b;
+      --success:      #4ade80;
+      --header-h:     64px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Esconde barras de scroll (visual limpo) */
+    * { scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+    /* Configurações dos ícones Material */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
+      user-select: none; line-height: 1; vertical-align: middle;
+    }
+    .icon-filled { font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    /* ═══ HEADER FIXO ═════════════════════════════════════════════════════
+       Contém: botão voltar | título (username) | avatar do usuário logado
+    ═══════════════════════════════════════════════════════════════════════ */
+    .app-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--header-h);
+      background: rgba(7,13,31,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(var(--rgb-primary),0.1);
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 14px; z-index: 100;
+    }
+    /* Botão "← Voltar" */
+    .btn-back-header {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      padding: 6px 10px; border-radius: 10px;
+      transition: color .2s, background .2s;
+    }
+    .btn-back-header:hover { color: var(--color-primary); background: rgba(var(--rgb-primary),.07); }
+    .btn-back-header .material-symbols-outlined { font-size: 20px; }
+    /* Título central (username do perfil visitado) */
+    .header-title {
+      font-size: 16px; font-weight: 700; flex: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* Avatar do usuário logado (canto direito do header) */
+    .header-user {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      padding: 5px 10px 5px 5px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      background: rgba(var(--rgb-primary),.04);
+      transition: background .2s, border-color .2s;
+      position: relative;
+    }
+    .header-user:hover { background: rgba(var(--rgb-primary),.09); border-color: rgba(var(--rgb-primary),.22); }
+    .header-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      object-fit: cover;
+      background: rgba(var(--rgb-primary),.12);
+      border: 1.5px solid rgba(var(--rgb-primary),.25);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .header-avatar .material-symbols-outlined { font-size: 18px; color: var(--text-dim); }
+    .header-username {
+      font-size: 14px; font-weight: 600; color: var(--text-main);
+      max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── Dropdown do usuário logado ── */
+    .user-dropdown {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--bg-surface);
+      border: 1px solid rgba(var(--rgb-primary),.14);
+      border-radius: 14px; padding: 6px;
+      min-width: 180px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.5);
+      display: none; z-index: 200;
+    }
+    .user-dropdown.open { display: block; animation: dropIn .2s ease; }
+    @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      cursor: pointer; font-size: 14px; color: var(--text-muted);
+      transition: background .15s, color .15s;
+    }
+    .dropdown-item:hover { background: rgba(var(--rgb-primary),.08); color: var(--color-primary); }
+    .dropdown-item.danger:hover { background: rgba(255,107,107,.08); color: var(--error); }
+    .dropdown-item .material-symbols-outlined { font-size: 18px; }
+    .dropdown-divider { height: 1px; background: rgba(var(--rgb-primary),.08); margin: 4px 0; }
+
+    /* ═══ CONTEÚDO PRINCIPAL ══════════════════════════════════════════════ */
+    .main-content {
+      padding-top: calc(var(--header-h) + 28px);
+      padding-bottom: 60px;
+      min-height: 100dvh;
+    }
+
+    /* ═══ ESTADOS DA PÁGINA ═══════════════════════════════════════════════
+       Apenas um estado fica visível por vez.
+       Controlados pelo JS adicionando/removendo display.
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    /* ── Estado: Carregando ── */
+    #stateLoading {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 60vh;
+    }
+    .spinner-lg {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(var(--rgb-primary),.15);
+      border-top-color: var(--color-primary);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Estado: Não encontrado / Privado ── */
+    .state-message {
+      display: none; /* oculto por padrão */
+      flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; text-align: center; padding: 0 32px;
+      animation: fadeIn .4s ease;
+    }
+    .state-message.show { display: flex; }
+    .state-icon {
+      width: 80px; height: 80px; border-radius: 24px;
+      background: rgba(var(--rgb-primary),.06);
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .state-icon .material-symbols-outlined { font-size: 36px; color: var(--text-dim); }
+    .state-message h2 { font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .state-message p  { font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 280px; }
+    .btn-back-state {
+      margin-top: 24px; padding: 10px 22px;
+      border-radius: 12px; border: 1px solid rgba(var(--rgb-primary),.2);
+      background: rgba(var(--rgb-primary),.06); color: var(--color-primary);
+      font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: background .2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-back-state:hover { background: rgba(var(--rgb-primary),.12); }
+    .btn-back-state .material-symbols-outlined { font-size: 16px; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    /* ── Estado: Perfil público (conteúdo real) ── */
+    #stateProfile {
+      display: none; /* oculto até dados carregarem */
+      animation: fadeIn .4s ease;
+    }
+    #stateProfile.show { display: block; }
+
+    /* ═══ CARD DO PERFIL ══════════════════════════════════════════════════
+       Glassmorphism no topo da página — avatar, username, bio, stats.
+    ═══════════════════════════════════════════════════════════════════════ */
+    .profile-header-card {
+      background: rgba(12,19,36,.75);
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      border-radius: 24px;
+      padding: 32px 24px 24px;
+      backdrop-filter: blur(20px);
+      margin: 0 16px 24px;
+      animation: slideUp .4s cubic-bezier(.25,1,.5,1) both;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+    /* Seção do avatar */
+    .avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+    /* Círculo do avatar */
+    .avatar-img {
+      width: 100px; height: 100px; border-radius: 50%;
+      border: 3px solid rgba(var(--rgb-primary),.3);
+      box-shadow: 0 0 30px rgba(var(--rgb-primary),.12);
+      background: rgba(var(--rgb-primary),.08);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; margin-bottom: 14px;
+    }
+    .avatar-img img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-img .no-photo { font-size: 44px; color: var(--text-dim); }
+
+    /* Textos do perfil */
+    .display-username {
+      font-size: 20px; font-weight: 700; color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .display-handle {
+      font-size: 14px; color: var(--color-primary); font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .display-bio {
+      font-size: 14px; color: var(--text-dim);
+      text-align: center; line-height: 1.55;
+      max-width: 320px; margin-bottom: 12px;
+    }
+
+    /* ── Estatísticas: Galerias | Fotos | Membro ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; margin-top: 16px;
+    }
+    .stat-box {
+      text-align: center; padding: 12px 6px;
+      background: rgba(var(--rgb-primary),.04);
+      border: 1px solid rgba(var(--rgb-primary),.1);
+      border-radius: 14px;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; color: var(--color-primary); }
+    .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+    /* ═══ SEÇÕES DAS GALERIAS ═════════════════════════════════════════════
+       Idêntico ao gallery.html — carrosséis horizontais.
+    ═══════════════════════════════════════════════════════════════════════ */
+    #galleriesContainer { padding-bottom: 20px; }
+
+    /* Título da área de galerias */
+    .galleries-title {
+      padding: 0 20px 16px;
+      font-size: 18px; font-weight: 700; color: var(--text-main);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .galleries-title .material-symbols-outlined { font-size: 20px; color: var(--color-primary); }
+
+    /* Uma seção por galeria */
+    .gallery-section { margin-bottom: 36px; }
+
+    /* Cabeçalho de cada galeria (nome + contador de fotos) */
+    .gallery-row-header { display: flex; align-items: center; padding: 0 20px 12px; gap: 10px; }
+    .gallery-row-title {
+      font-size: 16px; font-weight: 700; color: var(--text-main);
+      flex: 1; display: flex; align-items: center; gap: 8px;
+    }
+    /* Badge "X fotos" */
+    .photo-count {
+      font-size: 12px; color: var(--text-dim);
+      background: rgba(var(--rgb-primary),.06);
+      border: 1px solid rgba(var(--rgb-primary),.1);
+      border-radius: 999px; padding: 2px 10px;
+    }
+
+    /* ── Carrossel horizontal ── */
+    .carousel-wrap { position: relative; }
+    /* Gradiente de fade no lado direito (indica mais itens) */
+    .carousel-wrap::after {
+      content:''; position:absolute; right:0; top:0; bottom:0; width:60px;
+      background: linear-gradient(to right, transparent, var(--bg-main));
+      pointer-events: none; z-index: 5;
+    }
+    /* Track: container flex scrollável */
+    .carousel-track {
+      display: flex; gap: 10px;
+      overflow-x: auto;
+      padding: 6px 20px 16px;
+      cursor: grab;
+      align-items: flex-start;
+    }
+    .carousel-track.grabbing { cursor: grabbing; user-select: none; }
+
+    /* ── Card de foto ── */
+    .photo-card {
+      flex: none;
+      width: 140px; height: 190px;
+      border-radius: 12px;
+      position: relative; overflow: hidden;
+      background: var(--bg-card);
+      border: 1px solid rgba(var(--rgb-primary),.1);
+      cursor: pointer;
+      transition: transform .35s cubic-bezier(.25,1,.5,1), box-shadow .35s ease, border-color .3s;
+    }
+    .photo-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 28px rgba(var(--rgb-primary),.22), 0 8px 24px rgba(0,0,0,.45);
+      border-color: rgba(var(--rgb-primary),.45);
+      z-index: 10;
+    }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Overlay de botão (ver no lightbox) */
+    .card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 55%);
+      opacity: 0; transition: opacity .3s;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 8px; gap: 6px;
+    }
+    .photo-card:hover .card-overlay { opacity: 1; }
+
+    /* Botão circular "ver" no overlay */
+    .card-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(0,0,0,.65);
+      border: 1px solid rgba(var(--rgb-primary),.25);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--color-primary);
+      transition: transform .2s, background .2s;
+    }
+    .card-btn:hover { transform: scale(1.15); background: rgba(var(--rgb-primary),.15); }
+    .card-btn .material-symbols-outlined { font-size: 15px; }
+
+    /* Legenda na parte inferior do card */
+    .card-caption {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 6px 8px;
+      font-size: 11px; color: rgba(255,255,255,.8);
+      text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+    }
+
+    /* ── Estado vazio de galeria ── */
+    .gallery-empty {
+      padding: 28px 20px; text-align: center;
+      color: var(--text-dim); font-size: 13px;
+    }
+
+    /* ── Estado vazio de galerias (sem nenhuma galeria pública) ── */
+    .no-galleries {
+      margin: 0 16px;
+      padding: 40px 24px; text-align: center;
+      background: rgba(var(--rgb-primary),.03);
+      border: 1px dashed rgba(var(--rgb-primary),.14);
+      border-radius: 16px; color: var(--text-dim); font-size: 14px;
+    }
+    .no-galleries .material-symbols-outlined { font-size: 32px; display: block; margin-bottom: 10px; opacity: .4; }
+
+    /* ── Skeleton de carregamento ── */
+    .skeleton-row  { padding: 0 20px; margin-bottom: 36px; }
+    .skeleton-line {
+      background: linear-gradient(90deg, rgba(var(--rgb-primary),.05) 25%, rgba(var(--rgb-primary),.1) 50%, rgba(var(--rgb-primary),.05) 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+    /* ═══ LIGHTBOX (visualizador em tela cheia) ══════════════════════════ */
+    #lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.94);
+      z-index: 500;
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox-img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: 8px; }
+    /* Botões do lightbox (fechar, anterior, próximo) */
+    .lb-btn {
+      position: absolute;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(0,0,0,.6);
+      border: 1px solid rgba(var(--rgb-primary),.2);
+      color: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .2s;
+    }
+    .lb-btn:hover { background: rgba(var(--rgb-primary),.15); }
+    .lb-btn .material-symbols-outlined { font-size: 22px; }
+    #lb-caption {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      color: var(--text-dim); font-size: 13px; text-align: center;
+      max-width: 80vw; white-space: pre-wrap;
+    }
+
+    /* ═══ TOAST (notificação flutuante) ══════════════════════════════════ */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-surface);
+      border: 1px solid rgba(var(--rgb-primary),.18);
+      border-radius: 12px; padding: 12px 20px;
+      font-size: 14px; color: var(--text-main);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4); z-index: 999;
+      opacity: 0; transition: opacity .3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* Responsividade para telas pequenas */
+    @media (max-width: 420px) {
+      .profile-header-card { padding: 24px 18px 20px; margin: 0 12px 20px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Header Fixo ── -->
+  <header class="app-header">
+    <!-- Botão voltar para a galeria própria do usuário -->
+    <button class="btn-back-header" onclick="window.location.href='gallery.html'" id="btnBack">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Galeria
+    </button>
+    <!-- Título: preenchido com o username do perfil visitado -->
+    <span class="header-title" id="headerTitle">Perfil</span>
+    <!-- Avatar + username do usuário LOGADO (canto direito) -->
+    <div class="header-user" id="headerUser" onclick="toggleDropdown()">
+      <div class="header-avatar" id="headerAvatar">
+        <span class="material-symbols-outlined">person</span>
+      </div>
+      <span class="header-username" id="headerUsername">…</span>
+      <!-- Dropdown com opções do usuário logado -->
+      <div class="user-dropdown" id="userDropdown">
+        <div class="dropdown-item" onclick="window.location.href='profile.html'">
+          <span class="material-symbols-outlined">manage_accounts</span>
+          Meu perfil
+        </div>
+        <div class="dropdown-item" onclick="window.location.href='gallery.html'">
+          <span class="material-symbols-outlined">photo_library</span>
+          Minhas galerias
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item danger" onclick="handleLogout()">
+          <span class="material-symbols-outlined">logout</span>
+          Sair
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Conteúdo Principal ── -->
+  <main class="main-content">
+
+    <!-- ── Estado 1: Carregando ── -->
+    <div id="stateLoading">
+      <div class="spinner-lg"></div>
+    </div>
+
+    <!-- ── Estado 2: Usuário não encontrado ── -->
+    <div class="state-message" id="stateNotFound">
+      <div class="state-icon">
+        <span class="material-symbols-outlined">person_search</span>
+      </div>
+      <h2>Usuário não encontrado</h2>
+      <p>Nenhum perfil encontrado com este nome de usuário.</p>
+      <button class="btn-back-state" onclick="window.location.href='gallery.html'">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Voltar para minhas galerias
+      </button>
+    </div>
+
+    <!-- ── Estado 3: Perfil privado ── -->
+    <div class="state-message" id="statePrivate">
+      <div class="state-icon">
+        <span class="material-symbols-outlined">lock</span>
+      </div>
+      <h2>Perfil privado</h2>
+      <p id="statePrivateMsg">Este perfil está configurado como privado.</p>
+      <button class="btn-back-state" onclick="window.location.href='gallery.html'">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Voltar para minhas galerias
+      </button>
+    </div>
+
+    <!-- ── Estado 4: Perfil público (conteúdo real) ── -->
+    <div id="stateProfile">
+
+      <!-- ── Card do perfil: avatar, username, bio, stats ── -->
+      <div class="profile-header-card">
+        <div class="avatar-section">
+          <!-- Avatar: ícone "person" por padrão, substituído pela foto no JS -->
+          <div class="avatar-img" id="avatarDisplay">
+            <span class="material-symbols-outlined no-photo">person</span>
+          </div>
+          <!-- Username em destaque -->
+          <div class="display-username" id="displayUsername">—</div>
+          <!-- Handle com @ -->
+          <div class="display-handle" id="displayHandle">@—</div>
+          <!-- Bio (oculto se vazio) -->
+          <div class="display-bio" id="displayBio"></div>
+        </div>
+
+        <!-- Estatísticas do perfil visitado -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-value" id="statGalleries">—</div>
+            <div class="stat-label">Galerias</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statPhotos">—</div>
+            <div class="stat-label">Fotos</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="statMember">—</div>
+            <div class="stat-label">Membro desde</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Galerias públicas do perfil visitado ── -->
+      <div id="galleriesContainer">
+        <!-- Título da seção -->
+        <div class="galleries-title">
+          <span class="material-symbols-outlined">photo_library</span>
+          <span id="galleriesTitleText">Galerias</span>
+        </div>
+        <!-- Esqueleto de carregamento das galerias (visível enquanto carrega) -->
+        <div id="galleriesSkeleton">
+          <div class="skeleton-row">
+            <div class="skeleton-line" style="height:16px;width:160px;margin-bottom:14px"></div>
+            <div style="display:flex;gap:10px;padding:0 0 8px">
+              <div class="skeleton-line" style="width:140px;height:190px;border-radius:12px;flex:none"></div>
+              <div class="skeleton-line" style="width:140px;height:190px;border-radius:12px;flex:none"></div>
+              <div class="skeleton-line" style="width:140px;height:190px;border-radius:12px;flex:none"></div>
+            </div>
+          </div>
+          <div class="skeleton-row">
+            <div class="skeleton-line" style="height:16px;width:120px;margin-bottom:14px"></div>
+            <div style="display:flex;gap:10px;padding:0 0 8px">
+              <div class="skeleton-line" style="width:140px;height:190px;border-radius:12px;flex:none"></div>
+              <div class="skeleton-line" style="width:140px;height:190px;border-radius:12px;flex:none"></div>
+            </div>
+          </div>
+        </div>
+        <!-- As galerias reais são inseridas aqui pelo JS -->
+        <div id="galleriesList"></div>
+      </div>
+
+    </div><!-- /stateProfile -->
+
+  </main>
+
+  <!-- Toast de notificação -->
+  <div id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       LIGHTBOX — visualizador de foto em tela cheia
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="lightbox" onclick="closeLightbox(event)">
+    <!-- Botão fechar (X) -->
+    <button class="lb-btn" style="top:16px;right:16px" onclick="closeLightbox()" id="lbClose" aria-label="Fechar">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <!-- Botão anterior (←) -->
+    <button class="lb-btn" style="left:16px;top:50%;transform:translateY(-50%)" onclick="lbNavigate(-1)" id="lbPrev" aria-label="Foto anterior">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <!-- Imagem em tela cheia -->
+    <img id="lightbox-img" src="" alt="Foto em tela cheia">
+    <!-- Botão próximo (→) -->
+    <button class="lb-btn" style="right:16px;top:50%;transform:translateY(-50%)" onclick="lbNavigate(1)" id="lbNext" aria-label="Próxima foto">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+    <!-- Legenda da foto -->
+    <div id="lb-caption"></div>
+  </div>
+
+  <!--
+    ══════════════════════════════════════════════════════
+    JAVASCRIPT — LÓGICA DO PERFIL PÚBLICO
+    ══════════════════════════════════════════════════════
+  -->
+  <script type="module">
+    import { auth, db } from './js/firebase-config.js';
+    import {
+      onAuthStateChanged,  // observa estado de login do visitante
+      signOut              // logout do visitante
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      collection, query, where,
+      getDocs, getDoc, doc,
+      limit              // queries no Firestore
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ─── Estado ─────────────────────────────────────────────────────────
+    let loggedUser      = null;   // usuário Firebase autenticado (visitante)
+    let targetUid       = null;   // UID do dono do perfil visitado
+    let lbPhotos        = [];     // fotos abertas no lightbox (array da galeria atual)
+    let lbIndex         = 0;      // índice da foto atual no lightbox
+
+    // ─── Auth Guard ──────────────────────────────────────────────────────
+    // Exige que o visitante esteja logado antes de ver qualquer perfil
+    onAuthStateChanged(auth, async (user) => {
+      if (!user || !user.emailVerified) {
+        // Não logado → redireciona para a tela de login
+        window.location.replace('auth.html');
+        return;
+      }
+      loggedUser = user;
+      renderLoggedUserHeader();  // preenche o avatar/username do visitante no header
+      await loadPage();          // carrega o perfil solicitado
+    });
+
+    // ─── Preenche o header com os dados do usuário logado ────────────────
+    async function renderLoggedUserHeader() {
+      try {
+        const snap = await getDoc(doc(db, 'users', loggedUser.uid));
+        if (!snap.exists()) return;
+        const p = snap.data();
+        // Username no header
+        document.getElementById('headerUsername').textContent = p.username || '…';
+        // Avatar no header
+        if (p.photoURL) {
+          document.getElementById('headerAvatar').innerHTML = `<img src="${p.photoURL}" alt="Avatar">`;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    // ─── Carrega o perfil a partir da URL ────────────────────────────────
+    // Lê o parâmetro ?user=USERNAME da URL atual
+    async function loadPage() {
+      const params   = new URLSearchParams(window.location.search);
+      const username = params.get('user')?.trim().toLowerCase();
+
+      // Se não tem ?user= na URL, vai para a galeria própria
+      if (!username) { window.location.replace('gallery.html'); return; }
+
+      try {
+        // Busca o documento do usuário pelo username (único no sistema)
+        const q    = query(collection(db,'users'), where('username','==',username), limit(1));
+        const snap = await getDocs(q);
+
+        // Usuário não encontrado → mostra estado de erro
+        if (snap.empty) { showState('notFound'); return; }
+
+        const userDoc = snap.docs[0];
+        targetUid     = userDoc.id;
+        const profile = userDoc.data();
+
+        // Perfil privado → mostra estado de privado com o nome do usuário
+        if (profile.isProfilePrivate) {
+          document.getElementById('statePrivateMsg').textContent =
+            `@${profile.username} configurou o perfil como privado.`;
+          showState('private');
+          return;
+        }
+
+        // Se chegou aqui → perfil público. Renderiza os dados.
+        renderProfile(profile);
+        document.getElementById('headerTitle').textContent = '@' + profile.username;
+        // Mostra o estado de perfil ANTES de carregar as galerias
+        // (o usuário já vê o card do perfil enquanto as galerias carregam)
+        showState('profile');
+        await loadGalleries(targetUid); // carrega as galerias públicas
+
+      } catch (e) {
+        console.error(e);
+        showState('notFound'); // em caso de erro, mostra "não encontrado"
+      }
+    }
+
+    // ─── Renderiza os dados do perfil no card ────────────────────────────
+    function renderProfile(p) {
+      // Avatar
+      if (p.photoURL) {
+        document.getElementById('avatarDisplay').innerHTML = `<img src="${p.photoURL}" alt="Avatar">`;
+      }
+      // Textos
+      document.getElementById('displayUsername').textContent = p.username || '—';
+      document.getElementById('displayHandle').textContent   = '@' + (p.username || '');
+      // Bio: oculta o elemento se estiver vazia
+      const bioEl = document.getElementById('displayBio');
+      if (p.bio) { bioEl.textContent = p.bio; }
+      else        { bioEl.style.display = 'none'; }
+      // Data de membro
+      if (p.createdAt?.seconds) {
+        const d = new Date(p.createdAt.seconds * 1000);
+        document.getElementById('statMember').textContent =
+          d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+      }
+    }
+
+    // ─── Carrega e renderiza as galerias públicas ─────────────────────────
+    async function loadGalleries(uid) {
+      try {
+        // Busca todas as galerias PÚBLICAS do usuário
+        // NOTA: não usamos orderBy aqui pois exigiria índice composto no Firestore
+        const q = query(
+          collection(db,'galleries'),
+          where('ownerId','==', uid),
+          where('isPrivate','==', false)
+        );
+        const galSnap = await getDocs(q);
+
+        // Esconde o skeleton
+        document.getElementById('galleriesSkeleton').style.display = 'none';
+
+        // Sem galerias públicas → mensagem de vazio
+        if (galSnap.empty) {
+          document.getElementById('galleriesList').innerHTML = `
+            <div class="no-galleries">
+              <span class="material-symbols-outlined">photo_library</span>
+              Nenhuma galeria pública por aqui ainda.
+            </div>`;
+          document.getElementById('statGalleries').textContent = '0';
+          document.getElementById('statPhotos').textContent    = '0';
+          return;
+        }
+
+        let totalPhotos = 0;
+        const galleriesEl = document.getElementById('galleriesList');
+        galleriesEl.innerHTML = ''; // limpa qualquer conteúdo anterior
+
+        // Para cada galeria, cria uma seção com carrossel
+        for (const galDoc of galSnap.docs) {
+          const gal = galDoc.data();
+          // Busca as fotos desta galeria
+          // NOTA: sem orderBy para evitar necessidade de índice composto no Firestore
+          const pSnap = await getDocs(
+            query(collection(db,'photos'),
+              where('galleryId','==', galDoc.id))
+          );
+          totalPhotos += pSnap.size;
+
+          // Monta o HTML da seção de galeria
+          const sectionEl = document.createElement('div');
+          sectionEl.className = 'gallery-section';
+          sectionEl.innerHTML = `
+            <div class="gallery-row-header">
+              <div class="gallery-row-title">${escHtml(gal.name)}</div>
+              <span class="photo-count">${pSnap.size} foto${pSnap.size !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="carousel-wrap">
+              <div class="carousel-track" id="track-${galDoc.id}">
+                ${pSnap.empty
+                  ? `<div class="gallery-empty">Nenhuma foto nesta galeria.</div>`
+                  : ''}
+              </div>
+            </div>`;
+          galleriesEl.appendChild(sectionEl);
+
+          // Referência ao track desta galeria
+          const trackEl = sectionEl.querySelector('.carousel-track');
+
+          // Array de fotos desta galeria (para o lightbox)
+          const photos = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          // Cria os cards de foto
+          photos.forEach((photo, idx) => {
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            card.innerHTML = `
+              <img src="${escHtml(photo.url)}" alt="${escHtml(photo.caption || 'Foto')}" loading="lazy">
+              <div class="card-overlay">
+                <button class="card-btn" aria-label="Ver foto">
+                  <span class="material-symbols-outlined">open_in_full</span>
+                </button>
+              </div>
+              ${photo.caption ? `<div class="card-caption">${escHtml(photo.caption)}</div>` : ''}`;
+            // Clique abre o lightbox
+            card.addEventListener('click', () => openLightbox(photos, idx));
+            trackEl.appendChild(card);
+          });
+
+          // Habilita arrastar o carrossel com o mouse
+          enableDragScroll(trackEl);
+        }
+
+        // Atualiza as estatísticas
+        document.getElementById('statGalleries').textContent = galSnap.size;
+        document.getElementById('statPhotos').textContent    = totalPhotos;
+
+        // Título da seção de galerias (com nome do usuário)
+        const username = document.getElementById('displayUsername').textContent;
+        document.getElementById('galleriesTitleText').textContent =
+          `Galerias de ${username}`;
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('galleriesSkeleton').style.display = 'none';
+      }
+    }
+
+    // ─── Controla qual estado é exibido ──────────────────────────────────
+    // state: 'loading' | 'notFound' | 'private' | 'profile'
+    function showState(state) {
+      document.getElementById('stateLoading').style.display   = state === 'loading'  ? 'flex'  : 'none';
+      document.getElementById('stateNotFound').classList.toggle('show', state === 'notFound');
+      document.getElementById('statePrivate').classList.toggle('show',  state === 'private');
+      document.getElementById('stateProfile').classList.toggle('show',  state === 'profile');
+    }
+
+    // ─── Lightbox ────────────────────────────────────────────────────────
+    // Abre o lightbox com a foto de índice `startIdx` dentro de `photos`
+    function openLightbox(photos, startIdx) {
+      lbPhotos = photos;
+      lbIndex  = startIdx;
+      updateLightboxImage();
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    // Atualiza a imagem e legenda exibidas no lightbox
+    function updateLightboxImage() {
+      const photo = lbPhotos[lbIndex];
+      document.getElementById('lightbox-img').src = photo.url;
+      document.getElementById('lb-caption').textContent = photo.caption || '';
+      // Esconde os botões de nav se só há 1 foto
+      document.getElementById('lbPrev').style.display = lbPhotos.length > 1 ? '' : 'none';
+      document.getElementById('lbNext').style.display = lbPhotos.length > 1 ? '' : 'none';
+    }
+
+    // Navega entre fotos: dir = -1 (anterior) ou +1 (próxima)
+    window.lbNavigate = function(dir) {
+      lbIndex = (lbIndex + dir + lbPhotos.length) % lbPhotos.length;
+      updateLightboxImage();
+    };
+
+    // Fecha o lightbox (clique no fundo ou no botão X)
+    window.closeLightbox = function(e) {
+      if (e && e.target !== document.getElementById('lightbox') && e.target !== document.getElementById('lbClose')) return;
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lightbox-img').src = '';
+    };
+
+    // Navegação por teclado no lightbox
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'ArrowLeft')  lbNavigate(-1);
+      if (e.key === 'ArrowRight') lbNavigate(1);
+      if (e.key === 'Escape')     closeLightbox();
+    });
+
+    // ─── Arrastar carrossel com mouse ────────────────────────────────────
+    function enableDragScroll(track) {
+      let isDown = false, startX = 0, scrollLeft = 0;
+      track.addEventListener('mousedown', (e) => {
+        isDown = true; track.classList.add('grabbing');
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+      });
+      track.addEventListener('mouseleave', () => { isDown = false; track.classList.remove('grabbing'); });
+      track.addEventListener('mouseup',    () => { isDown = false; track.classList.remove('grabbing'); });
+      track.addEventListener('mousemove',  (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x    = e.pageX - track.offsetLeft;
+        const walk = (x - startX) * 1.5; // velocidade do scroll
+        track.scrollLeft = scrollLeft - walk;
+      });
+    }
+
+    // ─── Dropdown do usuário logado ──────────────────────────────────────
+    window.toggleDropdown = function() {
+      document.getElementById('userDropdown').classList.toggle('open');
+    };
+    // Fecha o dropdown ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('headerUser').contains(e.target)) {
+        document.getElementById('userDropdown').classList.remove('open');
+      }
+    });
+
+    // ─── Logout ──────────────────────────────────────────────────────────
+    window.handleLogout = async function() {
+      await signOut(auth);
+      window.location.replace('auth.html');
+    };
+
+    // ─── Proteção XSS ────────────────────────────────────────────────────
+    // Escapa caracteres especiais HTML para evitar injeção de código
+    function escHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    // ─── Toast ───────────────────────────────────────────────────────────
+    let toastTimer;
+    function toast(msg) {
+      clearTimeout(toastTimer);
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+    }
+  </script>
+
+</body>
+</html>

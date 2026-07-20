@@ -30,6 +30,21 @@ Cada versão usa estas seções para classificar as alterações:
 ### Adicionado
 - `docs/ROADMAP.md`: roadmap completo do projeto com versões planejadas (v1.2 até v2.0), baseado na pesquisa de mercado (37 respostas no Google Forms)
 - `docs/NOTAS_AMANHA.md`: notas da sessão de planejamento de 19/07/2026 com pontos a discutir nas próximas etapas
+- `public_profile.html`: nova página de perfil público visitável (v1.2.0 — Descoberta & Social)
+  - Acesso via `public_profile.html?user=USERNAME`
+  - Exige que o visitante esteja **logado** para visualizar
+  - Exibe: avatar, username, bio, estatísticas (galerias, fotos, membro desde)
+  - Lista as **galerias públicas** do usuário em carrosséis horizontais (idênticos ao `gallery.html`)
+  - Lightbox para ver fotos em tela cheia com navegação ← → e teclas de seta
+  - Tela de **"Perfil privado"** para perfis com `isProfilePrivate: true`
+  - Tela de **"Usuário não encontrado"** para usernames inexistentes
+  - Proteção XSS com `escHtml()` em todos os dados externos
+  - Arrastar carrosséis com mouse (drag scroll)
+
+### Alterado
+- `profile.html`: adicionado botão **"Ver como público"** no modo de visualização
+  - Abre `public_profile.html?user=USERNAME` em nova aba
+  - Fica oculto quando o perfil está configurado como privado
 
 ---
 

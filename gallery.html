@@ -224,6 +224,15 @@
       display: flex; align-items: center; gap: 8px;
     }
     .gallery-row-title .lock-icon { font-size: 14px; color: var(--text-dim); } /* ícone 🔒 */
+    /* Título clicável para renomear — hover com sublinhado pontilhado e cor primária */
+    .gallery-title-text[style*="cursor:pointer"]:hover,
+    .gallery-title-text[onclick]:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+    }
+
     /* Badge "X / 100 fotos" */
     .photo-count {
       font-size: 12px; color: var(--text-dim);
@@ -967,6 +976,9 @@
       });
     }
 
+    // Constante: mínimo de galerias visíveis (mesmo sem criar nenhuma)
+    const MIN_GALLERIES = 3;
+
     // Atualiza a UI de acordo com o número de galerias
     function updatePageState() {
       const count = Object.keys(galleries).length;
@@ -976,15 +988,54 @@
         count === 0 ? 'Crie sua primeira galeria!' :
         count === 1 ? '1 galeria' : `${count} galerias`;
 
-      // Alterna entre o estado vazio e o container de galerias
-      const empty     = document.getElementById('emptyState');
-      const container = document.getElementById('galleriesContainer');
-      empty.style.display     = count === 0 ? 'flex' : 'none';
-      container.style.display = count > 0  ? 'block' : 'none';
+      // Sempre mostra o container (nunca o estado vazio, pois os placeholders já preenchem)
+      document.getElementById('emptyState').style.display     = 'none';
+      document.getElementById('galleriesContainer').style.display = 'block';
+
+      // Renderiza ou remove galerias placeholder para sempre ter MIN_GALLERIES visíveis
+      renderPlaceholders(count);
 
       // Desativa o FAB se atingiu o limite de galerias
       const fab = document.getElementById('btnAddGallery');
       fab.disabled = count >= MAX_GALLERIES;
+    }
+
+    // Gerencia galerias placeholder (vazias, apenas com o botão "+")
+    // Aparece quando o usuário tem menos de MIN_GALLERIES galerias reais.
+    function renderPlaceholders(realCount) {
+      const needed = Math.max(0, MIN_GALLERIES - realCount); // quantos placeholders precisamos
+      const container = document.getElementById('galleriesContainer');
+
+      // Remove todos os placeholders existentes
+      container.querySelectorAll('.gallery-placeholder').forEach(el => el.remove());
+
+      // Cria os placeholders necessários
+      for (let i = 0; i < needed; i++) {
+        const ph = document.createElement('div');
+        ph.className = 'gallery-section gallery-placeholder';
+        // ID único para cada placeholder (não conflita com IDs de galerias reais)
+        ph.id = `placeholder-${i}`;
+        ph.innerHTML = `
+          <div class="gallery-row-header">
+            <div class="gallery-row-title">
+              <span class="gallery-title-text" style="color:var(--text-dim);font-style:italic">Sem nome</span>
+            </div>
+            <span class="photo-count">0 / ${MAX_PHOTOS} fotos</span>
+            <button class="btn-gallery-settings" onclick="openAddGalleryModal()" aria-label="Nomear galeria" title="Clique para nomear esta galeria">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+          </div>
+          <div class="carousel-wrap">
+            <div class="carousel-track">
+              <!-- Botão "+" único — convida o usuário a criar esta galeria -->
+              <button class="btn-add-photo" onclick="openAddGalleryModal()" title="Criar galeria e adicionar foto">
+                <span class="material-symbols-outlined">add</span>
+                Nova galeria
+              </button>
+            </div>
+          </div>`;
+        container.appendChild(ph);
+      }
     }
 
     // Remove o overlay de carregamento e exibe o conteúdo
@@ -1078,14 +1129,14 @@
       const countEl = document.getElementById('count-' + galleryId);
       if (countEl) countEl.textContent = `${photos.length} / ${MAX_PHOTOS} fotos`;
 
-      // Remove os cards de fotos antigos (preserva o botão "Adicionar" como 1º filho)
-      Array.from(track.querySelectorAll('.photo-card')).forEach(el => el.remove());
+      // Remove os cards de fotos antigos E o botão "+" (serão recriados na ordem certa)
+      Array.from(track.querySelectorAll('.photo-card, .btn-add-photo')).forEach(el => el.remove());
 
       // Cria um card para cada foto
       photos.forEach((photo, i) => {
         const card = document.createElement('div');
         card.className      = 'photo-card';
-        card.dataset.photoId = photo.id; // armazena o ID para referência
+        card.dataset.photoId = photo.id;
 
         card.innerHTML = `
           <!-- loading="lazy": carrega só quando estiver na viewport (desempenho) -->
@@ -1110,9 +1161,15 @@
         track.appendChild(card);
       });
 
-      // Desativa o botão "Adicionar" se atingiu o limite de fotos
-      const addBtn = track.querySelector('.btn-add-photo');
-      if (addBtn) addBtn.disabled = photos.length >= MAX_PHOTOS;
+      // Botão "+" sempre no FIM do carrossel, após todas as fotos
+      // Some quando atinge o limite de fotos (MAX_PHOTOS)
+      if (photos.length < MAX_PHOTOS) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn-add-photo';
+        addBtn.onclick   = () => openAddPhotoModal(galleryId);
+        addBtn.innerHTML = `<span class="material-symbols-outlined">add_photo_alternate</span>Adicionar`;
+        track.appendChild(addBtn);
+      }
     }
 
     // ─── Arrastar Carrossel com o Mouse ──────────────────────────────────
@@ -1223,6 +1280,21 @@
       document.getElementById('galleryNameBtnText').textContent     = 'Salvar';
       document.getElementById('galleryNameModalIcon').textContent   = 'edit';
       closeModal('modalGallerySettings'); // fecha as configurações
+      openModal('modalGalleryName');
+      setTimeout(() => document.getElementById('galleryNameInput').focus(), 300);
+    };
+
+    // Atalho: clicar diretamente no nome da galeria abre o modal de renomear
+    // Não precisa passar pelo modal de configurações (⋮)
+    window.quickRenameGallery = function(galleryId) {
+      activeGalleryId = galleryId; // define a galeria ativa
+      const g = galleries[galleryId];
+      if (!g) return;
+      renameMode = true;
+      document.getElementById('galleryNameInput').value            = g.name;
+      document.getElementById('galleryNameModalTitle').textContent = 'Renomear Galeria';
+      document.getElementById('galleryNameBtnText').textContent    = 'Salvar';
+      document.getElementById('galleryNameModalIcon').textContent  = 'edit';
       openModal('modalGalleryName');
       setTimeout(() => document.getElementById('galleryNameInput').focus(), 300);
     };
