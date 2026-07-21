@@ -76,22 +76,67 @@
 
 ### 2. ~~👥 Seguir usuários~~ ← ✅ CONCLUÍDO (sessão 21/07)
 
-- Botão Seguir/Seguindo no card de perfil público
-- Coleção `follows/{followerId_followingId}` no Firestore
-- Stat de seguidores via `getCountFromServer` (eficiente)
-- Dono não vê o botão no próprio perfil
-- UI otimista + rollback + toast
+### 3. ~~🔒 Regras do Firestore~~ ← ✅ Arquivo criado, pendente de publicação
 
 ---
 
-### 3. 🔧 Coisas técnicas pendentes (próximo passo)
+## 📌 Para amanhã — começar aqui
 
-- [ ] **Regras do Firestore** (`firestore.rules`) para segurança de dados
-  - Curtidas: só o campo `likedBy` pode ser atualizado
-  - Follows: só o próprio usuário pode criar/deletar seu follow
-- [ ] Adicionar `<meta>` SEO correto em todos os arquivos (title, description, og:image)
-- [ ] Criar arquivo `manifest.json` para PWA básico (ícone + nome na tela inicial)
-- [ ] Decidir domínio personalizado (hoje está no GitHub Pages)
+### ⚡ PRIORITÁRIO: Publicar as regras no Firebase Console
+
+O arquivo `firestore.rules` já está pronto e commitado.
+Só falta colar no Console e clicar em Publicar.
+
+**Link direto:**
+https://console.firebase.google.com/project/galeria-online-72eda/firestore/databases/-default-/rules
+
+**Como fazer:**
+1. Abrir o link acima
+2. Clicar no editor de regras → Ctrl+A → Delete
+3. Colar o conteúdo do arquivo `firestore.rules` (sem os comentários de cabeçalho)
+4. Clicar em **"Publicar"**
+
+> ⚠️ A cota do browser do Antigravity esgotou em 21/07 (~18h). Reseta em ~4h.
+> Se quiser, o Antigravity pode fazer automaticamente ao abrir a conversa.
+
+---
+
+### 🔲 SEO — meta tags em todos os arquivos
+
+Adicionar em cada arquivo HTML:
+```html
+<!-- Exemplo para gallery.html -->
+<title>Minhas Galerias — Galeria da Sah</title>
+<meta name="description" content="Veja e organize suas fotos em galerias privadas ou públicas.">
+<meta property="og:title" content="Galeria da Sah">
+<meta property="og:description" content="...">
+<meta property="og:image" content="...">
+```
+
+**Arquivos a atualizar:** `index.html`, `auth.html`, `onboarding.html`, `profile.html`, `gallery.html`, `public_profile.html`
+
+---
+
+### 🔲 PWA — manifest.json + ícone na tela inicial
+
+Criar `manifest.json` na raiz do projeto:
+```json
+{
+  "name": "Galeria da Sah",
+  "short_name": "Galeria",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070d1f",
+  "theme_color": "#4b8eff",
+  "icons": [...]
+}
+```
+
+Adicionar em cada HTML:
+```html
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#070d1f">
+```
 
 ---
 
@@ -103,4 +148,5 @@
 
 ---
 
-*Até a próxima sessão! 💙*
+*Sessão de 21/07/2026 encerrada. Até amanhã! 💙*
+
