@@ -40,93 +40,58 @@
 
 ---
 
+## ✅ Sessão de 21/07/2026 — Curtidas nas fotos
+
+### O que foi implementado
+
+| Funcionalidade | Arquivo | Status |
+|---|---|---|
+| Botão de coração em cada card de foto | `public_profile.html` | ✅ Feito |
+| Toggle curtir/descurtir com feedback visual | `public_profile.html` | ✅ Feito |
+| Contador de curtidas ao lado do ícone | `public_profile.html` | ✅ Feito |
+| Animação de pulsação ao curtir | `public_profile.html` | ✅ Feito |
+| Atualização otimista da UI (resposta imediata) | `public_profile.html` | ✅ Feito |
+| Rollback automático em caso de erro do servidor | `public_profile.html` | ✅ Feito |
+| Dono não pode curtir as próprias fotos | `public_profile.html` | ✅ Feito |
+| Dados persistidos em `likedBy` (arrayUnion/arrayRemove) | `public_profile.html` | ✅ Feito |
+| Lock de clique duplo simultâneo (`likeLock`) | `public_profile.html` | ✅ Feito |
+
+### Detalhes técnicos importantes
+
+- **Campo Firestore**: `photos/{photoId}.likedBy` → array de UIDs dos usuários que curtiram
+- **Concorrência segura**: usa `arrayUnion` (curtir) e `arrayRemove` (descurtir) — o Firestore garante atomicidade
+- **Otimismo**: a UI atualiza antes da resposta do servidor; reverte se der erro
+- **Dono bloqueado**: compara `loggedUser.uid === targetUid` — o botão fica `disabled` para o dono
+- **Regra Firestore recomendada** (adicionar no Firebase Console):
+  ```
+  allow update: if request.auth != null
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']);
+  ```
+
+---
+
 ## 🔜 Próximos passos — Retomar aqui
 
-### 1. ❤️ Curtidas nas fotos
+### 1. ~~❤️ Curtidas nas fotos~~ ← ✅ CONCLUÍDO (sessão 21/07)
 
-**O que é:** O visitante de um perfil público pode curtir fotos individuais.
+### 2. ~~👥 Seguir usuários~~ ← ✅ CONCLUÍDO (sessão 21/07)
 
-**Onde implementar:**
-- `public_profile.html`: adicionar ícone de coração em cada card de foto
-- Firestore: criar campo `likes: { [userId]: true }` dentro de cada documento `photos/{photoId}`
-  - Usar `updateDoc` com `arrayUnion` / `arrayRemove` para adicionar/remover curtida
-
-**Lógica:**
-```js
-// Curtir
-await updateDoc(doc(db,'photos', photoId), {
-  likedBy: arrayUnion(currentUser.uid)
-});
-
-// Descurtir
-await updateDoc(doc(db,'photos', photoId), {
-  likedBy: arrayRemove(currentUser.uid)
-});
-```
-
-**UI:**
-- Coração vazio `favorite_border` → coração cheio `favorite` (toggle)
-- Contador de curtidas ao lado do ícone
-- Animação de "pulsar" ao curtir (CSS keyframe)
-- O dono da foto **não** pode curtir a própria foto
-- Mostrar a contagem de curtidas no card (`gallery.html`) também (opcional, v1.3)
-
-**Regras de segurança Firestore a adicionar:**
-```
-allow update: if request.auth != null
-  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']);
-```
+- Botão Seguir/Seguindo no card de perfil público
+- Coleção `follows/{followerId_followingId}` no Firestore
+- Stat de seguidores via `getCountFromServer` (eficiente)
+- Dono não vê o botão no próprio perfil
+- UI otimista + rollback + toast
 
 ---
 
-### 2. 👥 Seguir usuários
+### 3. 🔧 Coisas técnicas pendentes (próximo passo)
 
-**O que é:** O visitante pode seguir um usuário para acompanhar suas atualizações.
-
-**Onde implementar:**
-- `public_profile.html`: botão "Seguir / Deixar de seguir" no card de perfil
-- Firestore: coleção `follows/{followerId_followingId}` com campos:
-  ```js
-  { followerId: uid, followingId: uid, createdAt: serverTimestamp() }
-  ```
-  - Ou: campo `following: [uid1, uid2]` no documento do usuário (mais simples, mas não escala bem)
-
-**Lógica:**
-```js
-const followId = `${currentUser.uid}_${targetUid}`;
-
-// Seguir
-await setDoc(doc(db,'follows', followId), {
-  followerId: currentUser.uid,
-  followingId: targetUid,
-  createdAt: serverTimestamp()
-});
-
-// Deixar de seguir
-await deleteDoc(doc(db,'follows', followId));
-
-// Verificar se já segue
-const snap = await getDoc(doc(db,'follows', followId));
-const isFollowing = snap.exists();
-```
-
-**UI:**
-- Botão no card de perfil: `"Seguir"` → `"Seguindo ✓"` (toggle)
-- Contador de seguidores nas estatísticas do perfil (`statFollowers`)
-- O dono do perfil **não** vê o botão de seguir no próprio perfil
-
-**Onde adicionar o stat de seguidores:**
-- `public_profile.html`: adicionar `<div>` de seguidores no bloco `.profile-stats`
-- Buscar contagem com query: `where('followingId','==', targetUid)`
-
----
-
-### 3. 🔧 Coisas técnicas pendentes (da sessão anterior)
-
+- [ ] **Regras do Firestore** (`firestore.rules`) para segurança de dados
+  - Curtidas: só o campo `likedBy` pode ser atualizado
+  - Follows: só o próprio usuário pode criar/deletar seu follow
 - [ ] Adicionar `<meta>` SEO correto em todos os arquivos (title, description, og:image)
 - [ ] Criar arquivo `manifest.json` para PWA básico (ícone + nome na tela inicial)
 - [ ] Decidir domínio personalizado (hoje está no GitHub Pages)
-- [ ] Regras do Firestore (`firestore.rules`) para segurança de dados
 
 ---
 

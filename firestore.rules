@@ -1,0 +1,238 @@
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  FIRESTORE SECURITY RULES — Galeria da Sah                              ║
+// ║                                                                          ║
+// ║  Como aplicar:                                                           ║
+// ║  1. Acesse https://console.firebase.google.com                           ║
+// ║  2. Vá em Firestore Database → Regras (aba "Rules")                     ║
+// ║  3. Cole o conteúdo abaixo e clique em "Publicar"                       ║
+// ║                                                                          ║
+// ║  Coleções protegidas:                                                    ║
+// ║    • users      → perfis dos usuários                                   ║
+// ║    • galleries  → galerias de fotos                                     ║
+// ║    • photos     → documentos de cada foto                               ║
+// ║    • follows    → relacionamentos de seguir                             ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ════════════════════════════════════════════════════════════════════════
+    // FUNÇÕES AUXILIARES
+    // Reutilizadas em várias regras para evitar repetição.
+    // ════════════════════════════════════════════════════════════════════════
+
+    // Verifica se o usuário está autenticado E com e-mail verificado.
+    // Importante: sem verificação de e-mail, qualquer conta de spam poderia escrever.
+    function isVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    // Verifica se o documento sendo escrito só alterou os campos permitidos.
+    // Usado para garantir que um usuário não sobrescreva campos que não deveria.
+    // Ex: onlyChanges(['likedBy']) → aceita apenas alterações no campo likedBy
+    function onlyChanges(allowedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+    }
+
+    // Verifica se o usuário logado é o dono de um documento de galeria.
+    // A galeria deve ter o campo ownerId igual ao UID do usuário.
+    function isGalleryOwner(galleryData) {
+      return galleryData.ownerId == request.auth.uid;
+    }
+
+    // Verifica se o usuário logado é colaborador de uma galeria.
+    // O campo collaborators é um array de UIDs.
+    function isCollaborator(galleryData) {
+      return request.auth.uid in galleryData.collaborators;
+    }
+
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COLEÇÃO: users
+    // Armazena os dados de perfil de cada usuário.
+    // Estrutura: users/{userId} → { username, bio, photoURL, isProfilePrivate, ... }
+    // ════════════════════════════════════════════════════════════════════════
+    match /users/{userId} {
+
+      // LEITURA:
+      // • Qualquer usuário autenticado e verificado pode LER qualquer perfil.
+      //   Necessário para: buscar perfis por username, exibir header com avatar.
+      allow read: if isVerified();
+
+      // CRIAÇÃO:
+      // • Só o próprio usuário pode CRIAR seu documento.
+      // • O UID do documento deve ser igual ao UID do usuário logado.
+      //   (Evita que alguém crie um perfil com o ID de outra pessoa.)
+      // • Campos obrigatórios devem existir.
+      allow create: if isVerified()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll(['username', 'profileComplete'])
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3;
+
+      // ATUALIZAÇÃO:
+      // • Só o próprio usuário pode ATUALIZAR o próprio perfil.
+      // • Campos que NÃO podem ser alterados via regra (para evitar fraude):
+      //   - createdAt: data de criação (imutável)
+      allow update: if isVerified()
+        && request.auth.uid == userId
+        && !('createdAt' in request.resource.data.diff(resource.data).affectedKeys());
+
+      // EXCLUSÃO:
+      // • Só o próprio usuário pode EXCLUIR o próprio documento.
+      //   (Cascata de exclusão de fotos e galerias é feita pelo app.)
+      allow delete: if isVerified()
+        && request.auth.uid == userId;
+    }
+
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COLEÇÃO: galleries
+    // Cada documento representa uma galeria.
+    // Estrutura: galleries/{galleryId} → { name, ownerId, isPrivate, collaborators, ... }
+    // ════════════════════════════════════════════════════════════════════════
+    match /galleries/{galleryId} {
+
+      // LEITURA:
+      // • Galerias PRIVADAS: só o dono e colaboradores podem ler.
+      // • Galerias PÚBLICAS: qualquer usuário autenticado e verificado pode ler.
+      allow read: if isVerified()
+        && (
+          resource.data.isPrivate == false    // galeria pública: todos veem
+          || isGalleryOwner(resource.data)    // dono sempre vê
+          || isCollaborator(resource.data)    // colaborador sempre vê
+        );
+
+      // CRIAÇÃO:
+      // • Só usuários autenticados e verificados podem criar galerias.
+      // • O ownerId da galeria deve ser o UID do usuário criando.
+      //   (Evita que alguém crie galerias "no nome" de outra pessoa.)
+      // • Campos obrigatórios: name e ownerId.
+      allow create: if isVerified()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasAll(['name', 'ownerId'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1;
+
+      // ATUALIZAÇÃO:
+      // • Dono pode alterar qualquer campo (nome, privacidade, colaboradores).
+      // • Colaborador pode alterar SOMENTE campos específicos de conteúdo —
+      //   não pode mudar ownerId, isPrivate ou collaborators.
+      allow update: if isVerified()
+        && (
+          isGalleryOwner(resource.data)       // dono: pode alterar tudo
+          || (
+            isCollaborator(resource.data)     // colaborador: só campos de conteúdo
+            && onlyChanges(['updatedAt'])      // por ora colaboradores só atualizam fotos separadas
+          )
+        )
+        // Ninguém pode mudar o ownerId de uma galeria existente
+        && request.resource.data.ownerId == resource.data.ownerId;
+
+      // EXCLUSÃO:
+      // • Apenas o DONO pode excluir a galeria.
+      //   (Colaboradores não devem conseguir excluir galerias de outros.)
+      allow delete: if isVerified()
+        && isGalleryOwner(resource.data);
+    }
+
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COLEÇÃO: photos
+    // Cada documento é uma foto dentro de uma galeria.
+    // Estrutura: photos/{photoId} → { url, caption, galleryId, uploadedBy, likedBy, ... }
+    // ════════════════════════════════════════════════════════════════════════
+    match /photos/{photoId} {
+
+      // LEITURA:
+      // • Qualquer usuário autenticado pode LER fotos.
+      //   A filtragem de privacidade é feita via query (só busca fotos de galerias públicas).
+      //   Para simplicidade e performance, não buscamos a galeria pai aqui.
+      allow read: if isVerified();
+
+      // CRIAÇÃO:
+      // • Usuário autenticado pode criar uma foto.
+      // • O campo uploadedBy deve ser o próprio UID do usuário.
+      // • Campos obrigatórios: galleryId, url, uploadedBy.
+      // • likedBy começa como array vazio (ninguém curtiu ainda).
+      allow create: if isVerified()
+        && request.resource.data.uploadedBy == request.auth.uid
+        && request.resource.data.keys().hasAll(['galleryId', 'url', 'uploadedBy'])
+        && request.resource.data.url is string;
+
+      // ATUALIZAÇÃO:
+      // Dois cenários permitidos:
+      //
+      // 1. EDITAR LEGENDA / OUTROS CAMPOS (dono ou colaborador da galeria)
+      //    → Não implementamos busca da galeria aqui por limitação de regras Firestore.
+      //    → Controlado pelo app: só o dono e colaboradores veem o botão de editar.
+      //    → A regra permite atualização por qualquer usuário autenticado, confiando no app.
+      //    → Em produção avançada: usar Cloud Functions para validação extra.
+      //
+      // 2. CURTIR / DESCURTIR (qualquer usuário autenticado, exceto o próprio dono)
+      //    → Só o campo `likedBy` pode ser alterado neste cenário.
+      //    → Garante que ninguém altera url, caption, etc. ao curtir.
+      allow update: if isVerified()
+        && (
+          // Cenário A: atualiza qualquer campo EXCETO likedBy
+          // (deve ser o dono da foto ou ter sido autorizado pelo app)
+          (
+            resource.data.uploadedBy == request.auth.uid
+            && !('likedBy' in request.resource.data.diff(resource.data).affectedKeys())
+          )
+          ||
+          // Cenário B: atualiza APENAS o campo likedBy (curtir/descurtir)
+          // Qualquer usuário verificado pode curtir, mas NÃO o próprio dono da foto
+          (
+            onlyChanges(['likedBy'])
+            && resource.data.uploadedBy != request.auth.uid
+          )
+        );
+
+      // EXCLUSÃO:
+      // • Apenas o usuário que fez o upload pode excluir a foto.
+      allow delete: if isVerified()
+        && resource.data.uploadedBy == request.auth.uid;
+    }
+
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COLEÇÃO: follows
+    // Cada documento representa uma relação "A segue B".
+    // ID do documento: "{followerId}_{followingId}"
+    // Estrutura: follows/{followId} → { followerId, followingId }
+    // ════════════════════════════════════════════════════════════════════════
+    match /follows/{followId} {
+
+      // LEITURA:
+      // • Qualquer usuário autenticado pode LER documentos de follows.
+      //   Necessário para: verificar se já segue, contar seguidores.
+      allow read: if isVerified();
+
+      // CRIAÇÃO (= seguir):
+      // • Só usuários verificados podem criar um follow.
+      // • O followerId deve ser o próprio UID do usuário logado.
+      //   (Evita seguir "em nome" de outra pessoa.)
+      // • Um usuário não pode seguir a si mesmo.
+      // • O ID do documento deve ser "{followerId}_{followingId}" (formato padrão do app).
+      allow create: if isVerified()
+        && request.resource.data.followerId == request.auth.uid
+        && request.resource.data.followerId != request.resource.data.followingId
+        && request.resource.data.keys().hasAll(['followerId', 'followingId'])
+        && followId == request.resource.data.followerId + '_' + request.resource.data.followingId;
+
+      // ATUALIZAÇÃO:
+      // • Documentos de follows NÃO devem ser atualizados — apenas criados/deletados.
+      //   (Se quiser mudar, deve excluir e criar novamente.)
+      allow update: if false;
+
+      // EXCLUSÃO (= deixar de seguir):
+      // • Só o próprio seguidor pode se "desseguir" (deletar o documento).
+      allow delete: if isVerified()
+        && resource.data.followerId == request.auth.uid;
+    }
+
+  }
+}

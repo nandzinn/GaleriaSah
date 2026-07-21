@@ -254,19 +254,68 @@
       max-width: 320px; margin-bottom: 12px;
     }
 
-    /* ── Estatísticas: Galerias | Fotos | Membro ── */
+    /* ── Estatísticas: Galerias | Fotos | Membro | Seguidores ── */
     .stats-row {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 10px; margin-top: 16px;
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 8px; margin-top: 16px;
     }
     .stat-box {
-      text-align: center; padding: 12px 6px;
+      text-align: center; padding: 12px 4px;
       background: rgba(var(--rgb-primary),.04);
       border: 1px solid rgba(var(--rgb-primary),.1);
       border-radius: 14px;
     }
-    .stat-value { font-size: 20px; font-weight: 700; color: var(--color-primary); }
-    .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+    .stat-value { font-size: 18px; font-weight: 700; color: var(--color-primary); }
+    .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
+    /* ── Botão Seguir / Seguindo ── */
+    /* Aparece logo abaixo da bio, oculto para o próprio dono */
+    #followSection {
+      margin-top: 16px;
+      display: flex; justify-content: center;
+    }
+    #followSection.hidden { display: none; }
+    #btnFollow {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 28px;
+      border-radius: 999px;
+      font-size: 14px; font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s, transform .15s;
+      border: 1.5px solid var(--color-deep);
+      background: var(--color-deep);
+      color: #fff;
+    }
+    #btnFollow:hover {
+      background: #3a7aef;
+      border-color: #3a7aef;
+      transform: scale(1.04);
+    }
+    /* Estado: já seguindo — visual diferente (ghost) */
+    #btnFollow.following {
+      background: rgba(var(--rgb-primary),.07);
+      border-color: rgba(var(--rgb-primary),.3);
+      color: var(--color-primary);
+    }
+    #btnFollow.following:hover {
+      background: rgba(255,80,80,.1);
+      border-color: rgba(255,80,80,.4);
+      color: #ff8088;
+      transform: scale(1.04);
+    }
+    /* Spinner mini dentro do botão enquanto carrega */
+    #btnFollow .btn-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    #btnFollow.loading .btn-spinner { display: block; }
+    #btnFollow.loading .btn-label   { display: none; }
+    #btnFollow.following .btn-spinner { border-top-color: var(--color-primary); }
 
     /* ═══ SEÇÕES DAS GALERIAS ═════════════════════════════════════════════
        Idêntico ao gallery.html — carrosséis horizontais.
@@ -356,6 +405,54 @@
     }
     .card-btn:hover { transform: scale(1.15); background: rgba(var(--rgb-primary),.15); }
     .card-btn .material-symbols-outlined { font-size: 15px; }
+
+    /* ── Botão de curtida (coração) ── */
+    /* Fica no canto inferior direito do card, sempre visível */
+    .like-btn {
+      position: absolute;
+      bottom: 7px; right: 7px;
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      padding: 4px 8px 4px 6px;
+      cursor: pointer;
+      color: rgba(255,255,255,.75);
+      font-size: 11px; font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: background .2s, border-color .2s, color .2s, transform .15s;
+      z-index: 6; /* acima do overlay */
+      line-height: 1;
+      user-select: none;
+    }
+    .like-btn:hover {
+      background: rgba(255,80,100,.25);
+      border-color: rgba(255,80,100,.4);
+      color: #ff8099;
+    }
+    /* Estado: curtido (preenchido) */
+    .like-btn.liked {
+      background: rgba(255,60,90,.22);
+      border-color: rgba(255,80,100,.5);
+      color: #ff6b8a;
+    }
+    .like-btn .like-icon {
+      font-size: 14px;
+      font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;
+      transition: font-variation-settings .15s;
+    }
+    /* Ícone preenchido quando curtido */
+    .like-btn.liked .like-icon {
+      font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
+    }
+    /* Animação de pulsação ao curtir */
+    @keyframes likePoP {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.35); }
+      65%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    .like-btn.pop { animation: likePoP .35s cubic-bezier(.25,1,.5,1); }
 
     /* Legenda na parte inferior do card */
     .card-caption {
@@ -541,6 +638,22 @@
             <div class="stat-value" id="statMember">—</div>
             <div class="stat-label">Membro desde</div>
           </div>
+          <!-- 4º stat: seguidores (preenchido pelo JS) -->
+          <div class="stat-box">
+            <div class="stat-value" id="statFollowers">—</div>
+            <div class="stat-label">Seguidores</div>
+          </div>
+        </div>
+
+        <!-- Botão Seguir / Seguindo (oculto para o próprio dono) -->
+        <div id="followSection" class="hidden">
+          <button id="btnFollow" onclick="toggleFollow()" aria-label="Seguir usuário">
+            <div class="btn-spinner"></div>
+            <span class="btn-label">
+              <span class="material-symbols-outlined" style="font-size:16px">person_add</span>
+              Seguir
+            </span>
+          </button>
         </div>
       </div>
 
@@ -616,7 +729,13 @@
     import {
       collection, query, where,
       getDocs, getDoc, doc,
-      limit              // queries no Firestore
+      limit,              // queries no Firestore
+      updateDoc,          // atualizar campos de um documento (curtidas)
+      arrayUnion,         // adicionar item a um array sem duplicatas
+      arrayRemove,        // remover item de um array
+      setDoc,             // criar/sobrescrever documento (follows)
+      deleteDoc,          // excluir documento (unfollow)
+      getCountFromServer  // contar documentos sem baixar todos (seguidores)
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // ─── Estado ─────────────────────────────────────────────────────────
@@ -624,6 +743,8 @@
     let targetUid       = null;   // UID do dono do perfil visitado
     let lbPhotos        = [];     // fotos abertas no lightbox (array da galeria atual)
     let lbIndex         = 0;      // índice da foto atual no lightbox
+    let likeLock        = false;  // previne duplo clique simultâneo em curtidas
+    let followLock      = false;  // previne duplo clique simultâneo em seguir
 
     // ─── Auth Guard ──────────────────────────────────────────────────────
     // Exige que o visitante esteja logado antes de ver qualquer perfil
@@ -688,6 +809,8 @@
         // Mostra o estado de perfil ANTES de carregar as galerias
         // (o usuário já vê o card do perfil enquanto as galerias carregam)
         showState('profile');
+        // Carrega status de seguir e contagem de seguidores em paralelo
+        checkFollowStatus(targetUid);
         await loadGalleries(targetUid); // carrega as galerias públicas
 
       } catch (e) {
@@ -716,6 +839,113 @@
           d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
       }
     }
+
+    // ─── Verifica e configura o botão de seguir ─────────────────────────────
+    // Chamada após renderProfile para configurar o botão e o contador
+    async function checkFollowStatus(uid) {
+      const followSection = document.getElementById('followSection');
+      const btnFollow     = document.getElementById('btnFollow');
+
+      // O dono não vê o botão de seguir no próprio perfil
+      if (loggedUser.uid === uid) {
+        followSection.classList.add('hidden');
+      } else {
+        followSection.classList.remove('hidden');
+        // Coloca o botão em loading enquanto verifica o Firestore
+        btnFollow.classList.add('loading');
+      }
+
+      try {
+        // Conta quantos seguidores o perfil tem
+        const followersQ   = query(collection(db,'follows'), where('followingId','==', uid));
+        const followersSnap = await getCountFromServer(followersQ);
+        document.getElementById('statFollowers').textContent = followersSnap.data().count;
+
+        // Se é o próprio dono, para aqui
+        if (loggedUser.uid === uid) return;
+
+        // Verifica se o visitante já segue este perfil
+        // ID do documento = "followerId_followingId" (formato fácil de consultar)
+        const followId   = `${loggedUser.uid}_${uid}`;
+        const followSnap = await getDoc(doc(db,'follows', followId));
+
+        // Atualiza o visual do botão conforme o estado
+        setFollowButtonState(followSnap.exists());
+      } catch (e) {
+        console.error('Erro ao verificar follow:', e);
+      } finally {
+        // Remove o loading do botão sempre
+        btnFollow.classList.remove('loading');
+      }
+    }
+
+    // Atualiza o visual do botão Seguir/Seguindo
+    function setFollowButtonState(isFollowing) {
+      const btn = document.getElementById('btnFollow');
+      const label = btn.querySelector('.btn-label');
+      if (isFollowing) {
+        btn.classList.add('following');
+        btn.setAttribute('aria-label', 'Deixar de seguir');
+        label.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size:16px">check</span>
+          Seguindo`;
+      } else {
+        btn.classList.remove('following');
+        btn.setAttribute('aria-label', 'Seguir usuário');
+        label.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size:16px">person_add</span>
+          Seguir`;
+      }
+    }
+
+    // ─── Seguir / Deixar de seguir (toggle) ─────────────────────────────
+    // Chamada pelo onclick do #btnFollow
+    window.toggleFollow = async function() {
+      if (followLock) return;
+      followLock = true;
+
+      const btn        = document.getElementById('btnFollow');
+      const wasFollowing = btn.classList.contains('following');
+      const followId   = `${loggedUser.uid}_${targetUid}`;
+      const followRef  = doc(db, 'follows', followId);
+      const counterEl  = document.getElementById('statFollowers');
+      const currentCount = parseInt(counterEl.textContent) || 0;
+
+      // UI otimista: atualiza antes de ir ao Firestore
+      btn.classList.add('loading');
+      if (wasFollowing) {
+        // Deixar de seguir — decrementa contador
+        counterEl.textContent = Math.max(0, currentCount - 1);
+      } else {
+        // Seguir — incrementa contador
+        counterEl.textContent = currentCount + 1;
+      }
+
+      try {
+        if (wasFollowing) {
+          // UNFOLLOW: remove o documento da coleção follows
+          await deleteDoc(followRef);
+          setFollowButtonState(false);
+          toast('Você deixou de seguir este perfil.');
+        } else {
+          // FOLLOW: cria o documento com os dados do relacionamento
+          await setDoc(followRef, {
+            followerId:  loggedUser.uid,
+            followingId: targetUid
+          });
+          setFollowButtonState(true);
+          toast('Você está seguindo este perfil! 💙');
+        }
+      } catch (err) {
+        // Reverte a UI otimista em caso de erro
+        console.error('Erro ao seguir/deixar de seguir:', err);
+        counterEl.textContent = currentCount;
+        toast('Erro ao atualizar. Tente novamente.');
+      } finally {
+        btn.classList.remove('loading');
+        followLock = false;
+      }
+    };
 
     // ─── Carrega e renderiza as galerias públicas ─────────────────────────
     async function loadGalleries(uid) {
@@ -786,6 +1016,14 @@
           photos.forEach((photo, idx) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
+
+            // Verifica se o usuário logado já curtiu esta foto
+            const likedBy    = Array.isArray(photo.likedBy) ? photo.likedBy : [];
+            const isLiked    = likedBy.includes(loggedUser.uid);
+            const likeCount  = likedBy.length;
+            // O dono do perfil visitado não pode curtir as próprias fotos
+            const isOwner    = loggedUser.uid === targetUid;
+
             card.innerHTML = `
               <img src="${escHtml(photo.url)}" alt="${escHtml(photo.caption || 'Foto')}" loading="lazy">
               <div class="card-overlay">
@@ -793,9 +1031,32 @@
                   <span class="material-symbols-outlined">open_in_full</span>
                 </button>
               </div>
-              ${photo.caption ? `<div class="card-caption">${escHtml(photo.caption)}</div>` : ''}`;
-            // Clique abre o lightbox
-            card.addEventListener('click', () => openLightbox(photos, idx));
+              ${photo.caption ? `<div class="card-caption">${escHtml(photo.caption)}</div>` : ''}
+              <button
+                class="like-btn${isLiked ? ' liked' : ''}"
+                id="like-${photo.id}"
+                aria-label="${isLiked ? 'Descurtir foto' : 'Curtir foto'}"
+                ${isOwner ? 'disabled title="Você não pode curtir suas próprias fotos"' : ''}
+              >
+                <span class="material-symbols-outlined like-icon">favorite</span>
+                <span class="like-count" id="lc-${photo.id}">${likeCount > 0 ? likeCount : ''}</span>
+              </button>`;
+
+            // Clique no card (exceto no botão de like) → abre lightbox
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('.like-btn')) return; // deixa o like-btn tratar
+              openLightbox(photos, idx);
+            });
+
+            // Clique no botão de curtida → toggle like
+            if (!isOwner) {
+              const likeBtn = card.querySelector('.like-btn');
+              likeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLike(photo, likeBtn);
+              });
+            }
+
             trackEl.appendChild(card);
           });
 
@@ -815,6 +1076,69 @@
       } catch (e) {
         console.error(e);
         document.getElementById('galleriesSkeleton').style.display = 'none';
+      }
+    }
+
+    // ─── Curtidas (Like / Unlike) ─────────────────────────────────────────
+    // Alterna a curtida do usuário logado em uma foto.
+    // photo    → objeto com { id, likedBy, ... }
+    // likeBtn  → elemento DOM do botão de coração
+    async function toggleLike(photo, likeBtn) {
+      // Previne cliques simultâneos que causariam inconsistência
+      if (likeLock) return;
+      likeLock = true;
+
+      const photoRef    = doc(db, 'photos', photo.id);
+      const countEl     = document.getElementById(`lc-${photo.id}`);
+      const wasLiked    = likeBtn.classList.contains('liked');
+
+      // Leitura otimista: atualiza a UI antes de ir ao servidor
+      // (se o servidor falhar, o estado é revertido)
+      const currentCount = parseInt(countEl.textContent) || 0;
+      if (wasLiked) {
+        // Descurtir
+        likeBtn.classList.remove('liked');
+        likeBtn.setAttribute('aria-label', 'Curtir foto');
+        const newCount = Math.max(0, currentCount - 1);
+        countEl.textContent = newCount > 0 ? newCount : '';
+      } else {
+        // Curtir
+        likeBtn.classList.add('liked');
+        likeBtn.setAttribute('aria-label', 'Descurtir foto');
+        countEl.textContent = currentCount + 1;
+        // Dispara animação de pulsação
+        likeBtn.classList.remove('pop');
+        void likeBtn.offsetWidth; // força reflow para reiniciar a animação
+        likeBtn.classList.add('pop');
+      }
+
+      try {
+        // Persiste a curtida no Firestore usando arrayUnion / arrayRemove
+        await updateDoc(photoRef, {
+          likedBy: wasLiked
+            ? arrayRemove(loggedUser.uid)  // remove UID do array
+            : arrayUnion(loggedUser.uid)   // adiciona UID sem duplicata
+        });
+        // Atualiza o objeto local para a próxima checagem
+        if (wasLiked) {
+          photo.likedBy = (photo.likedBy || []).filter(id => id !== loggedUser.uid);
+        } else {
+          photo.likedBy = [...(photo.likedBy || []), loggedUser.uid];
+        }
+      } catch (err) {
+        // Revertendo atualização otimista em caso de erro
+        console.error('Erro ao curtir:', err);
+        if (wasLiked) {
+          likeBtn.classList.add('liked');
+          countEl.textContent = currentCount > 0 ? currentCount : '';
+        } else {
+          likeBtn.classList.remove('liked', 'pop');
+          const prev = Math.max(0, (parseInt(countEl.textContent) || 0) - 1);
+          countEl.textContent = prev > 0 ? prev : '';
+        }
+        toast('Erro ao registrar curtida. Tente novamente.');
+      } finally {
+        likeLock = false;
       }
     }
 

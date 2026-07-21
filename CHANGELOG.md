@@ -24,8 +24,45 @@ Cada versão usa estas seções para classificar as alterações:
 
 ## [Não lançado]
 
-> Alterações feitas em 20/07/2026 — ainda não lançadas como versão.
+> Alterações feitas em 21/07/2026 — ainda não lançadas como versão.
 > Quando for lançar, mova esta seção para `[1.2.0]`.
+
+### Adicionado
+- `public_profile.html`: ❤️ **Curtidas nas fotos** — visitantes podem curtir/descurtir fotos de perfis públicos
+  - Botão de coração no canto inferior direito de cada card de foto
+  - Coração vazio `favorite_border` → coração cheio `favorite` ao curtir
+  - Contador de curtidas exibido ao lado do ícone (oculto quando 0)
+  - Animação de pulsação (`likePoP`) ao curtir
+  - **Atualização otimista de UI**: a tela responde instantaneamente, sem esperar o Firestore
+  - Rollback automático se o Firestore retornar erro
+  - O dono do próprio perfil **não pode curtir** suas fotos (botão desabilitado)
+  - Dados persistidos em `photos/{photoId}.likedBy` (array de UIDs)
+  - Usa `arrayUnion` / `arrayRemove` do Firestore para concorrência segura
+  - Lock de clique duplo simultâneo (`likeLock`) para evitar inconsistências
+- `public_profile.html`: 👥 **Seguir usuários** — visitantes podem seguir/deixar de seguir perfis
+  - Botão **"Seguir"** azul preenchido e **"Seguindo ✓"** ghost no card de perfil
+  - Hover no "Seguindo" muda para vermelho (indicação de deixar de seguir)
+  - Spinner mini dentro do botão enquanto aguarda o Firestore
+  - Dados persistidos em `follows/{followerId_followingId}` com `followerId` e `followingId`
+  - Contagem de seguidores em tempo real via `getCountFromServer` (eficiente, não baixa documentos)
+  - **4º stat** adicionado ao card de perfil: **Seguidores**
+  - O próprio dono **não vê o botão** de seguir no próprio perfil
+  - UI otimista com rollback automático em caso de erro
+  - Lock de duplo clique (`followLock`)
+  - Toast de confirmação ao seguir/deixar de seguir
+- `firestore.rules` (**novo arquivo**): 🔒 **Regras de segurança do Firestore** cobrindo todas as coleções
+  - **`users`**: leitura pública (autenticados), escrita/edição/exclusão só pelo próprio usuário; `createdAt` imutável
+  - **`galleries`**: leitura respeitando `isPrivate`; criação requer `ownerId == uid`; colaboradores não podem excluir nem mudar `ownerId`
+  - **`photos`**: criação requer `uploadedBy == uid`; atualização de `likedBy` isolada (qualquer verificado, exceto dono da foto); exclusão só por quem fez upload
+  - **`follows`**: criação requer `followerId == uid` e formato correto do ID; atualização bloqueada (`false`); exclusão só pelo próprio seguidor
+  - Função auxiliar `isVerified()` garante e-mail verificado em todas as operações
+  - Função auxiliar `onlyChanges()` isola campos permitidos em updates parciais
+
+---
+
+## [Não lançado — sessão anterior]
+
+> Alterações feitas em 20/07/2026.
 
 ### Adicionado
 - `docs/ROADMAP.md`: roadmap completo do projeto com versões planejadas (v1.2 até v2.0), baseado na pesquisa de mercado (37 respostas no Google Forms)
