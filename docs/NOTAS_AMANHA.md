@@ -76,67 +76,49 @@
 
 ### 2. ~~👥 Seguir usuários~~ ← ✅ CONCLUÍDO (sessão 21/07)
 
-### 3. ~~🔒 Regras do Firestore~~ ← ✅ Arquivo criado, pendente de publicação
+### 3. ~~🔒 Regras do Firestore~~ ← ✅ Publicado no Firebase Console em 22/07 (14:08)
+
+### 4. ~~🔲 SEO — meta tags em todos os arquivos~~ ← ✅ CONCLUÍDO (sessão 22/07)
+
+### 5. ~~🔲 PWA — manifest.json + ícone na tela inicial~~ ← ✅ CONCLUÍDO (sessão 22/07)
 
 ---
 
-## 📌 Para amanhã — começar aqui
+## ✅ Sessão de 22/07/2026 — SEO + PWA
 
-### ⚡ PRIORITÁRIO: Publicar as regras no Firebase Console
+### O que foi implementado
 
-O arquivo `firestore.rules` já está pronto e commitado.
-Só falta colar no Console e clicar em Publicar.
+| Funcionalidade | Arquivo(s) | Status |
+|---|---|---|
+| Regras Firestore publicadas no Console | Firebase Console | ✅ Feito |
+| `<title>` descritivo por página | todos os 6 HTMLs | ✅ Feito |
+| `<meta description>` único por página | todos os 6 HTMLs | ✅ Feito |
+| `<meta robots>` (noindex nas privadas, index no perfil público) | todos os 6 HTMLs | ✅ Feito |
+| Open Graph completo (`og:type`, `og:title`, etc.) | todos os 6 HTMLs | ✅ Feito |
+| Twitter Card completo | todos os 6 HTMLs | ✅ Feito |
+| `manifest.json` PWA criado | raiz do projeto | ✅ Feito |
+| `icon-512.png` e `icon-192.png` gerados | raiz do projeto | ✅ Feito |
+| `og-cover.png` (1200×630) criado | raiz do projeto | ✅ Feito |
+| `<link rel="manifest">` + `<link rel="apple-touch-icon">` | todos os 6 HTMLs | ✅ Feito |
 
-**Link direto:**
-https://console.firebase.google.com/project/galeria-online-72eda/firestore/databases/-default-/rules
+### Detalhes técnicos importantes
 
-**Como fazer:**
-1. Abrir o link acima
-2. Clicar no editor de regras → Ctrl+A → Delete
-3. Colar o conteúdo do arquivo `firestore.rules` (sem os comentários de cabeçalho)
-4. Clicar em **"Publicar"**
-
-> ⚠️ A cota do browser do Antigravity esgotou em 21/07 (~18h). Reseta em ~4h.
-> Se quiser, o Antigravity pode fazer automaticamente ao abrir a conversa.
-
----
-
-### 🔲 SEO — meta tags em todos os arquivos
-
-Adicionar em cada arquivo HTML:
-```html
-<!-- Exemplo para gallery.html -->
-<title>Minhas Galerias — Galeria da Sah</title>
-<meta name="description" content="Veja e organize suas fotos em galerias privadas ou públicas.">
-<meta property="og:title" content="Galeria da Sah">
-<meta property="og:description" content="...">
-<meta property="og:image" content="...">
-```
-
-**Arquivos a atualizar:** `index.html`, `auth.html`, `onboarding.html`, `profile.html`, `gallery.html`, `public_profile.html`
+- **PWA**: `display: standalone` → o app abre sem barra de endereço, como app nativo
+- **Ícones**: `icon-512.png` (gerado por IA) redimensionado para `icon-192.png` via .NET
+- **robots**: só `public_profile.html` tem `index, follow` — as demais páginas são autenticadas e não devem ser indexadas
+- **og:image**: aponta para `og-cover.png` hospedado no Firebase Hosting
 
 ---
 
-### 🔲 PWA — manifest.json + ícone na tela inicial
+## 📌 Para a próxima sessão — começar aqui
 
-Criar `manifest.json` na raiz do projeto:
-```json
-{
-  "name": "Galeria da Sah",
-  "short_name": "Galeria",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#070d1f",
-  "theme_color": "#4b8eff",
-  "icons": [...]
-}
-```
+### 🔜 Próxima etapa da v1.2.0 — conforme ROADMAP
 
-Adicionar em cada HTML:
-```html
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#070d1f">
-```
+Ver `docs/ROADMAP.md` para a lista completa. As próximas features sugeridas são:
+
+1. **Busca de usuários** — campo de busca por username na navbar
+2. **Feed de atividade** — timeline com curtidas e novos seguidores
+3. **Notificações in-app** — toast/badge quando alguém curte ou segue
 
 ---
 
@@ -148,5 +130,4 @@ Adicionar em cada HTML:
 
 ---
 
-*Sessão de 21/07/2026 encerrada. Até amanhã! 💙*
-
+*Sessão de 22/07/2026 encerrada. Até a próxima! 💙*

@@ -24,10 +24,23 @@ Cada versão usa estas seções para classificar as alterações:
 
 ## [Não lançado]
 
-> Alterações feitas em 21/07/2026 — ainda não lançadas como versão.
+> Alterações feitas em 22/07/2026 — ainda não lançadas como versão.
 > Quando for lançar, mova esta seção para `[1.2.0]`.
 
 ### Adicionado
+- **SEO** — meta tags completas em todos os 6 arquivos HTML (`index.html`, `auth.html`, `onboarding.html`, `profile.html`, `gallery.html`, `public_profile.html`):
+  - `<title>` descritivo com nome do app ("Galeria da Sah") em cada página
+  - `<meta name="description">` com texto único por página
+  - `<meta name="robots">`: `noindex, nofollow` para páginas privadas; `index, follow` para `public_profile.html`
+  - `<meta name="theme-color" content="#070d1f">` — cor da barra do navegador mobile
+  - Open Graph (`og:type`, `og:site_name`, `og:title`, `og:description`, `og:image`, `og:url`) em todos
+  - Twitter Card (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`) em todos
+- **PWA** — app instalável na tela inicial de celulares e desktops:
+  - `manifest.json` criado na raiz com `name`, `short_name`, `display: standalone`, `theme_color`, `background_color` e lista de ícones
+  - `icon-512.png` e `icon-192.png` gerados (ícone com câmera estilizada em fundo navy)
+  - `og-cover.png` (1200×630) para Open Graph/Twitter Card ao compartilhar links
+  - `<link rel="manifest">` e `<link rel="apple-touch-icon">` adicionados nos 6 HTMLs
+
 - `public_profile.html`: ❤️ **Curtidas nas fotos** — visitantes podem curtir/descurtir fotos de perfis públicos
   - Botão de coração no canto inferior direito de cada card de foto
   - Coração vazio `favorite_border` → coração cheio `favorite` ao curtir
