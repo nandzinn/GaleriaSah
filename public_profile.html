@@ -547,9 +547,200 @@
     }
     #toast.show { opacity: 1; }
 
+    /* ═══ PAINEL DE COMENTÁRIOS (bottom sheet) ══════════════════════
+       Desliza de baixo para cima ao clicar no 💬 da foto no lightbox.
+    ═════════════════════════════════════════════════════════ */
+    /* Botão de comentários no lightbox */
+    #lbCommentBtn {
+      position: absolute; bottom: 24px; right: 24px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 999px;
+      background: rgba(var(--rgb-primary),.12);
+      border: 1px solid rgba(var(--rgb-primary),.25);
+      color: var(--color-primary);
+      font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: background .2s, transform .15s;
+    }
+    #lbCommentBtn:hover { background: rgba(var(--rgb-primary),.2); transform: translateY(-1px); }
+    #lbCommentBtn .material-symbols-outlined { font-size: 18px; }
+
+    /* Overlay do painel (escurece o fundo) */
+    #commentOverlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 600;
+      display: none;
+      animation: fadeIn .25s ease;
+    }
+    #commentOverlay.open { display: block; }
+
+    /* Painel em si (bottom sheet) */
+    #commentPanel {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      z-index: 601;
+      background: var(--bg-surface);
+      border-top: 1px solid rgba(var(--rgb-primary),.14);
+      border-radius: 24px 24px 0 0;
+      display: flex; flex-direction: column;
+      max-height: 70vh;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.25,1,.5,1);
+      box-shadow: 0 -8px 40px rgba(0,0,0,.5);
+    }
+    #commentPanel.open { transform: translateY(0); }
+
+    /* Alinhaça do painel */
+    .cp-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: rgba(var(--rgb-primary),.2);
+      margin: 12px auto 0;
+      flex-shrink: 0;
+    }
+    .cp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 10px;
+      flex-shrink: 0;
+    }
+    .cp-title {
+      font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cp-title .material-symbols-outlined { font-size: 20px; color: var(--color-primary); }
+    #cpCount {
+      font-size: 12px; color: var(--text-dim); font-weight: 400;
+      background: rgba(var(--rgb-primary),.07);
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      border-radius: 999px; padding: 2px 10px;
+    }
+    .cp-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(var(--rgb-primary),.06);
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-dim);
+      transition: background .15s, color .15s;
+    }
+    .cp-close:hover { background: rgba(var(--rgb-primary),.12); color: var(--color-primary); }
+    .cp-close .material-symbols-outlined { font-size: 18px; }
+
+    /* Lista de comentários (scrollável) */
+    #commentList {
+      flex: 1; overflow-y: auto;
+      padding: 0 16px 8px;
+    }
+    /* Estado vazio */
+    .comments-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 32px 0; color: var(--text-dim); text-align: center;
+    }
+    .comments-empty .material-symbols-outlined { font-size: 32px; margin-bottom: 10px; opacity: .4; }
+    .comments-empty p { font-size: 13px; }
+
+    /* Spinner de carregamento da lista */
+    .comments-loading {
+      display: flex; justify-content: center; padding: 24px 0;
+    }
+    .spinner-sm {
+      width: 24px; height: 24px;
+      border: 2px solid rgba(var(--rgb-primary),.15);
+      border-top-color: var(--color-primary);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Item de comentário individual */
+    .comment-item {
+      display: flex; gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(var(--rgb-primary),.06);
+      animation: fadeIn .3s ease;
+    }
+    .comment-item:last-child { border-bottom: none; }
+    /* Avatar do autor */
+    .cm-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(var(--rgb-primary),.08);
+      border: 1px solid rgba(var(--rgb-primary),.15);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .cm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .cm-avatar .material-symbols-outlined { font-size: 16px; color: var(--text-dim); }
+    /* Corpo do comentário */
+    .cm-body { flex: 1; min-width: 0; }
+    .cm-top {
+      display: flex; align-items: baseline; gap: 6px; margin-bottom: 3px;
+    }
+    .cm-username {
+      font-size: 13px; font-weight: 600; color: var(--text-main);
+    }
+    .cm-time {
+      font-size: 11px; color: var(--text-dim);
+    }
+    .cm-text {
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+      word-break: break-word;
+    }
+    /* Botão de excluir comentário */
+    .cm-delete {
+      flex-shrink: 0; background: none; border: none; cursor: pointer;
+      color: var(--text-dim); padding: 4px;
+      border-radius: 6px; transition: color .15s, background .15s;
+      display: flex; align-items: center;
+    }
+    .cm-delete:hover { color: var(--error); background: rgba(255,107,107,.08); }
+    .cm-delete .material-symbols-outlined { font-size: 16px; }
+
+    /* Campo de escrita de comentário */
+    .cp-input-row {
+      display: flex; gap: 10px; align-items: flex-end;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(var(--rgb-primary),.08);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+    }
+    #commentInput {
+      flex: 1;
+      background: rgba(var(--rgb-primary),.05);
+      border: 1px solid rgba(var(--rgb-primary),.12);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px; color: var(--text-main); font-family: 'Inter', sans-serif;
+      resize: none; outline: none; max-height: 100px; min-height: 42px;
+      transition: border-color .2s, background .2s;
+    }
+    #commentInput::placeholder { color: var(--text-dim); }
+    #commentInput:focus { border-color: rgba(var(--rgb-primary),.35); background: rgba(var(--rgb-primary),.08); }
+    #btnSendComment {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--color-deep), var(--color-mid));
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; flex-shrink: 0;
+      transition: opacity .2s, transform .15s;
+    }
+    #btnSendComment:hover { opacity: .88; transform: translateY(-1px); }
+    #btnSendComment:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    #btnSendComment .material-symbols-outlined { font-size: 20px; }
+
+    /* Badge de comentários no card de foto (ao lado do coração) */
+    .comment-btn {
+      position: absolute; bottom: 8px; left: 8px;
+      display: flex; align-items: center; gap: 3px;
+      background: rgba(7,13,31,.7);
+      border: none; border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--text-muted); font-size: 12px; font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: color .2s, background .2s;
+      backdrop-filter: blur(4px);
+    }
+    .comment-btn:hover { color: var(--color-primary); background: rgba(var(--rgb-primary),.15); }
+    .comment-btn .material-symbols-outlined { font-size: 14px; }
+
     /* Responsividade para telas pequenas */
     @media (max-width: 420px) {
       .profile-header-card { padding: 24px 18px 20px; margin: 0 12px 20px; }
+      #commentPanel { max-height: 80vh; }
     }
   </style>
 </head>
@@ -580,6 +771,10 @@
         <div class="dropdown-item" onclick="window.location.href='gallery.html'">
           <span class="material-symbols-outlined">photo_library</span>
           Minhas galerias
+        </div>
+        <div class="dropdown-item" onclick="window.location.href='explore.html'">
+          <span class="material-symbols-outlined">explore</span>
+          Explorar
         </div>
         <div class="dropdown-divider"></div>
         <div class="dropdown-item danger" onclick="handleLogout()">
@@ -731,6 +926,50 @@
     </button>
     <!-- Legenda da foto -->
     <div id="lb-caption"></div>
+    <!-- Botão de comentários (💬) -->
+    <button id="lbCommentBtn" onclick="openComments(event)" aria-label="Ver comentários">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span id="lbCommentCount">0</span>
+    </button>
+  </div>
+
+  <!-- ═══ PAINEL DE COMENTÁRIOS (bottom sheet) ═══════════════════════════════════
+       Overlay escurecido + painel que sobe de baixo
+  ══════════════════════════════════════════════════ -->
+  <div id="commentOverlay" onclick="closeComments()"></div>
+  <div id="commentPanel" role="dialog" aria-modal="true" aria-label="Comentários">
+    <!-- Alça visual para indicar que é um bottom sheet -->
+    <div class="cp-handle"></div>
+    <!-- Cabeçalho do painel -->
+    <div class="cp-header">
+      <div class="cp-title">
+        <span class="material-symbols-outlined">chat_bubble</span>
+        Comentários
+        <span id="cpCount">0</span>
+      </div>
+      <button class="cp-close" onclick="closeComments()" aria-label="Fechar comentários">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <!-- Lista de comentários -->
+    <div id="commentList">
+      <div class="comments-loading"><div class="spinner-sm"></div></div>
+    </div>
+    <!-- Campo de escrita -->
+    <div class="cp-input-row">
+      <textarea
+        id="commentInput"
+        placeholder="Escreva um comentário…"
+        rows="1"
+        maxlength="300"
+        oninput="autoResizeTextarea(this)"
+        onkeydown="handleCommentKeydown(event)"
+        aria-label="Campo de comentário"
+      ></textarea>
+      <button id="btnSendComment" onclick="sendComment()" disabled aria-label="Enviar comentário">
+        <span class="material-symbols-outlined">send</span>
+      </button>
+    </div>
   </div>
 
   <!--
@@ -753,7 +992,10 @@
       arrayRemove,        // remover item de um array
       setDoc,             // criar/sobrescrever documento (follows)
       deleteDoc,          // excluir documento (unfollow)
-      getCountFromServer  // contar documentos sem baixar todos (seguidores)
+      getCountFromServer, // contar documentos sem baixar todos (seguidores)
+      addDoc,             // adicionar documento novo na coleção (comentários)
+      serverTimestamp,    // timestamp do servidor (comentários)
+      orderBy             // ordenar query (comentários por data)
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // ─── Estado ─────────────────────────────────────────────────────────
@@ -1058,11 +1300,20 @@
               >
                 <span class="material-symbols-outlined like-icon">favorite</span>
                 <span class="like-count" id="lc-${photo.id}">${likeCount > 0 ? likeCount : ''}</span>
+              </button>
+              <button
+                class="comment-btn"
+                id="cmb-${photo.id}"
+                aria-label="Ver comentários"
+              >
+                <span class="material-symbols-outlined">chat_bubble</span>
+                <span class="comment-count" id="cc-${photo.id}"></span>
               </button>`;
 
-            // Clique no card (exceto no botão de like) → abre lightbox
+            // Clique no card (exceto no botão de like e no botão de comentário) → abre lightbox
             card.addEventListener('click', (e) => {
-              if (e.target.closest('.like-btn')) return; // deixa o like-btn tratar
+              if (e.target.closest('.like-btn'))    return; // deixa o like-btn tratar
+              if (e.target.closest('.comment-btn')) return; // deixa o comment-btn tratar
               openLightbox(photos, idx);
             });
 
@@ -1074,6 +1325,17 @@
                 toggleLike(photo, likeBtn);
               });
             }
+
+            // Clique no botão de comentário → abre lightbox na foto e abre painel
+            const commentBtn = card.querySelector('.comment-btn');
+            commentBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              openLightbox(photos, idx);  // abre a foto no lightbox
+              openCommentPanel(photo.id); // abre o painel de comentários
+            });
+
+            // Carrega o contador de comentários em background (não bloqueia render)
+            loadCommentCount(photo.id);
 
             trackEl.appendChild(card);
           });
@@ -1186,6 +1448,9 @@
       // Esconde os botões de nav se só há 1 foto
       document.getElementById('lbPrev').style.display = lbPhotos.length > 1 ? '' : 'none';
       document.getElementById('lbNext').style.display = lbPhotos.length > 1 ? '' : 'none';
+      // Atualiza o contador de comentários no botão do lightbox
+      const cc = document.getElementById(`cc-${photo.id}`);
+      document.getElementById('lbCommentCount').textContent = cc ? (cc.textContent || '0') : '0';
     }
 
     // Navega entre fotos: dir = -1 (anterior) ou +1 (próxima)
@@ -1263,6 +1528,264 @@
       el.textContent = msg;
       el.classList.add('show');
       toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // ═══ COMENTÁRIOS ═══════════════════════════════════════════════════════
+
+    // Foto cujos comentários estão abertos no momento
+    let currentCommentPhotoId = null;
+
+    // ─── Carrega apenas o CONTADOR de comentários de uma foto ─────────────
+    // Chamada no momento em que o card é renderizado (não bloqueia a UI)
+    async function loadCommentCount(photoId) {
+      try {
+        const snap = await getCountFromServer(
+          query(collection(db, 'comments'), where('photoId', '==', photoId))
+        );
+        const count = snap.data().count;
+        const el = document.getElementById(`cc-${photoId}`);
+        if (el) el.textContent = count > 0 ? count : '';
+      } catch (e) { /* silencia erros de contagem */ }
+    }
+
+    // ─── Abre o painel de comentários de uma foto ─────────────────────────
+    // Chamado tanto pelo botão 💬 do lightbox quanto pelo comment-btn do card
+    window.openCommentPanel = async function(photoId) {
+      currentCommentPhotoId = photoId;
+
+      // Abre o overlay + painel com animação
+      document.getElementById('commentOverlay').classList.add('open');
+      document.getElementById('commentPanel').classList.add('open');
+      document.getElementById('commentList').innerHTML =
+        '<div class="comments-loading"><div class="spinner-sm"></div></div>';
+
+      // Habilita o campo de texto
+      const input = document.getElementById('commentInput');
+      input.value = '';
+      input.style.height = '42px';
+      document.getElementById('btnSendComment').disabled = true;
+
+      await fetchComments(photoId);
+    };
+
+    // Alias: chamada via onclick do botão no lightbox
+    window.openComments = function(e) {
+      e.stopPropagation(); // impede fechar o lightbox ao clicar
+      const photo = lbPhotos[lbIndex];
+      if (photo) openCommentPanel(photo.id);
+    };
+
+    // ─── Busca e renderiza os comentários de uma foto ─────────────────────
+    async function fetchComments(photoId) {
+      try {
+        const q = query(
+          collection(db, 'comments'),
+          where('photoId', '==', photoId),
+          orderBy('createdAt', 'asc')
+        );
+        const snap = await getDocs(q);
+
+        const listEl = document.getElementById('commentList');
+
+        // Atualiza a contagem no cabeçalho do painel
+        const count = snap.size;
+        document.getElementById('cpCount').textContent = count;
+        // Atualiza o badge no botão do lightbox
+        document.getElementById('lbCommentCount').textContent = count;
+        // Atualiza o badge no card da foto
+        const cc = document.getElementById(`cc-${photoId}`);
+        if (cc) cc.textContent = count > 0 ? count : '';
+
+        if (snap.empty) {
+          listEl.innerHTML = `
+            <div class="comments-empty">
+              <span class="material-symbols-outlined">chat_bubble_outline</span>
+              <p>Nenhum comentário ainda.<br>Seja o primeiro!</p>
+            </div>`;
+          return;
+        }
+
+        listEl.innerHTML = '';
+        snap.forEach(commentDoc => {
+          const c = commentDoc.data();
+          renderComment(commentDoc.id, c, listEl, photoId);
+        });
+
+        // Rola para o fim (mais recentes)
+        listEl.scrollTop = listEl.scrollHeight;
+
+      } catch (e) {
+        console.error('Erro ao buscar comentários:', e);
+        document.getElementById('commentList').innerHTML =
+          '<div class="comments-empty"><p>Erro ao carregar comentários.</p></div>';
+      }
+    }
+
+    // ─── Renderiza um único comentário no DOM ─────────────────────────────
+    function renderComment(commentId, c, listEl, photoId) {
+      const avatarHtml = c.authorPhotoURL
+        ? `<img src="${escHtml(c.authorPhotoURL)}" alt="${escHtml(c.authorUsername)}">`
+        : `<span class="material-symbols-outlined">person</span>`;
+
+      // Calcula o tempo relativo ("há 2 min", "há 3 h", etc.)
+      const timeStr = c.createdAt?.seconds
+        ? timeAgo(new Date(c.createdAt.seconds * 1000))
+        : 'agora';
+
+      // Pode excluir: autor do comentário OU dono do perfil visitado
+      const canDelete = loggedUser.uid === c.authorId || loggedUser.uid === targetUid;
+
+      const item = document.createElement('div');
+      item.className = 'comment-item';
+      item.id = `cm-${commentId}`;
+      item.innerHTML = `
+        <div class="cm-avatar">${avatarHtml}</div>
+        <div class="cm-body">
+          <div class="cm-top">
+            <span class="cm-username">${escHtml(c.authorUsername)}</span>
+            <span class="cm-time">${timeStr}</span>
+          </div>
+          <div class="cm-text">${escHtml(c.text)}</div>
+        </div>
+        ${canDelete ? `
+          <button class="cm-delete" aria-label="Excluir comentário">
+            <span class="material-symbols-outlined">delete</span>
+          </button>` : ''}`;
+
+      // Evento de exclusão
+      if (canDelete) {
+        item.querySelector('.cm-delete').addEventListener('click', () => {
+          deleteComment(commentId, photoId);
+        });
+      }
+
+      listEl.appendChild(item);
+    }
+
+    // ─── Envia um novo comentário ─────────────────────────────────────────
+    window.sendComment = async function() {
+      const input = document.getElementById('commentInput');
+      const text  = input.value.trim();
+      if (!text || !currentCommentPhotoId) return;
+
+      const btn = document.getElementById('btnSendComment');
+      btn.disabled = true;
+
+      try {
+        // Busca os dados do usuário logado (avatar + username)
+        const userSnap = await getDoc(doc(db, 'users', loggedUser.uid));
+        const userData  = userSnap.exists() ? userSnap.data() : {};
+
+        // Adiciona o documento na coleção comments
+        const docRef = await addDoc(collection(db, 'comments'), {
+          photoId:         currentCommentPhotoId,
+          authorId:        loggedUser.uid,
+          authorUsername:  userData.username  || '…',
+          authorPhotoURL:  userData.photoURL  || null,
+          text,
+          createdAt:       serverTimestamp()
+        });
+
+        // Adiciona o comentário na lista otimisticamente (sem reload)
+        const listEl = document.getElementById('commentList');
+        // Remove o estado vazio se existir
+        const emptyEl = listEl.querySelector('.comments-empty');
+        if (emptyEl) emptyEl.remove();
+
+        renderComment(docRef.id, {
+          authorId:       loggedUser.uid,
+          authorUsername: userData.username  || '…',
+          authorPhotoURL: userData.photoURL  || null,
+          text,
+          createdAt:      { seconds: Math.floor(Date.now() / 1000) }
+        }, listEl, currentCommentPhotoId);
+
+        // Atualiza os contadores
+        const newCount = parseInt(document.getElementById('cpCount').textContent || '0') + 1;
+        document.getElementById('cpCount').textContent  = newCount;
+        document.getElementById('lbCommentCount').textContent = newCount;
+        const cc = document.getElementById(`cc-${currentCommentPhotoId}`);
+        if (cc) cc.textContent = newCount > 0 ? newCount : '';
+
+        // Limpa o campo e rola para o fim
+        input.value = '';
+        input.style.height = '42px';
+        listEl.scrollTop = listEl.scrollHeight;
+
+      } catch (e) {
+        console.error('Erro ao enviar comentário:', e);
+        toast('Erro ao enviar comentário. Tente novamente.');
+      } finally {
+        btn.disabled = !document.getElementById('commentInput').value.trim();
+      }
+    };
+
+    // ─── Exclui um comentário ─────────────────────────────────────────────
+    async function deleteComment(commentId, photoId) {
+      try {
+        await deleteDoc(doc(db, 'comments', commentId));
+        // Remove o item do DOM
+        const el = document.getElementById(`cm-${commentId}`);
+        if (el) {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity .2s';
+          setTimeout(() => el.remove(), 200);
+        }
+        // Atualiza os contadores
+        const listEl  = document.getElementById('commentList');
+        const newCount = Math.max(0, parseInt(document.getElementById('cpCount').textContent || '0') - 1);
+        document.getElementById('cpCount').textContent  = newCount;
+        document.getElementById('lbCommentCount').textContent = newCount;
+        const cc = document.getElementById(`cc-${photoId}`);
+        if (cc) cc.textContent = newCount > 0 ? newCount : '';
+
+        // Se lista ficou vazia, mostra o estado vazio
+        if (newCount === 0) {
+          listEl.innerHTML = `
+            <div class="comments-empty">
+              <span class="material-symbols-outlined">chat_bubble_outline</span>
+              <p>Nenhum comentário ainda.<br>Seja o primeiro!</p>
+            </div>`;
+        }
+        toast('Comentário excluído.');
+      } catch (e) {
+        console.error('Erro ao excluir comentário:', e);
+        toast('Erro ao excluir. Tente novamente.');
+      }
+    }
+
+    // ─── Fecha o painel de comentários ───────────────────────────────────
+    window.closeComments = function() {
+      document.getElementById('commentPanel').classList.remove('open');
+      document.getElementById('commentOverlay').classList.remove('open');
+      currentCommentPhotoId = null;
+    };
+
+    // ─── Auto-resize do textarea ──────────────────────────────────────────
+    window.autoResizeTextarea = function(el) {
+      el.style.height = '42px';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+      // Habilita/desabilita o botão enviar conforme o texto
+      document.getElementById('btnSendComment').disabled = !el.value.trim();
+    };
+
+    // ─── Ctrl+Enter ou Enter (sem Shift) envia o comentário ──────────────
+    window.handleCommentKeydown = function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendComment();
+      }
+    };
+
+    // ─── Timestamp relativo ("há X min", "há X h", etc.) ─────────────────
+    function timeAgo(date) {
+      const diff = Math.floor((Date.now() - date) / 1000); // segundos
+      if (diff <    60) return 'agora';
+      if (diff <  3600) return `há ${Math.floor(diff / 60)} min`;
+      if (diff < 86400) return `há ${Math.floor(diff / 3600)} h`;
+      const days = Math.floor(diff / 86400);
+      if (days < 30)    return `há ${days} d`;
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
     }
   </script>
 

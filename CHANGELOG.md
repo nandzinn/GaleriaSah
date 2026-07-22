@@ -22,12 +22,23 @@ Cada versão usa estas seções para classificar as alterações:
 
 ---
 
-## [Não lançado]
-
-> Alterações feitas em 22/07/2026 — ainda não lançadas como versão.
-> Quando for lançar, mova esta seção para `[1.2.0]`.
+## [1.2.0] - 2026-07-22
 
 ### Adicionado
+- **Feed / Explorar (`explore.html`)**:
+  - Nova página para exibir todas as galerias públicas da plataforma.
+  - Ordenação decrescente (mais recentes primeiro).
+  - Cards de galeria responsivos mostrando a capa (primeira foto), título, contagem de fotos, avatar e nome do dono.
+  - Links diretos para o perfil público do criador a partir do card.
+  - Abas de navegação no header (`Minhas` / `Explorar`) integradas no `gallery.html`.
+  - Link "Explorar" adicionado ao dropdown de usuário no `public_profile.html`.
+- **Sistema de Comentários (`public_profile.html`)**:
+  - Nova coleção `comments` no Firestore com regras de segurança rigorosas.
+  - UI em formato de "Bottom Sheet" (painel deslizante de baixo para cima) acessível via ícone 💬 no card da foto ou no Lightbox.
+  - Contador em tempo real do número de comentários na foto.
+  - Textarea com auto-resize para escrever comentários (máx. 300 caracteres).
+  - Formatação de data/hora relativa (ex: "há 5 min").
+  - Exclusão de comentários restrita ao autor do comentário ou ao dono do perfil visitado.
 - **SEO** — meta tags completas em todos os 6 arquivos HTML (`index.html`, `auth.html`, `onboarding.html`, `profile.html`, `gallery.html`, `public_profile.html`):
   - `<title>` descritivo com nome do app ("Galeria da Sah") em cada página
   - `<meta name="description">` com texto único por página
@@ -40,6 +51,7 @@ Cada versão usa estas seções para classificar as alterações:
   - `icon-512.png` e `icon-192.png` gerados (ícone com câmera estilizada em fundo navy)
   - `og-cover.png` (1200×630) para Open Graph/Twitter Card ao compartilhar links
   - `<link rel="manifest">` e `<link rel="apple-touch-icon">` adicionados nos 6 HTMLs
+
 
 - `public_profile.html`: ❤️ **Curtidas nas fotos** — visitantes podem curtir/descurtir fotos de perfis públicos
   - Botão de coração no canto inferior direito de cada card de foto
