@@ -918,7 +918,7 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-      query, where, orderBy,
+      query, where,
       onSnapshot,       // ouve mudanças em tempo real
       serverTimestamp,
       writeBatch,       // operações em lote (mais eficiente para múltiplas escritas)
@@ -1015,11 +1015,13 @@
     // Mais eficiente que buscar os dados toda vez — escuta somente as mudanças.
     function initGalleries() {
       const galleriesRef = collection(db, 'galleries');
-      // Filtra apenas as galerias do usuário logado, ordenadas pelo campo "order"
+      // Filtra apenas as galerias do usuário logado.
+      // NOTA: NÃO usamos orderBy aqui para evitar exigir um índice composto no
+      // Firebase Console (where + orderBy = índice composto obrigatório).
+      // A ordenação pelo campo "order" é feita no cliente após receber os dados.
       const q = query(
         galleriesRef,
-        where('ownerId', '==', currentUser.uid),
-        orderBy('order', 'asc')
+        where('ownerId', '==', currentUser.uid)
       );
 
       // galleriesUnsub = função para cancelar o listener (chamada no logout)
@@ -1043,7 +1045,6 @@
           if (change.type === 'added' || change.type === 'modified') {
             const id = change.doc.id;
             galleries[id] = { id, ...change.doc.data() }; // atualiza o mapa em memória
-            renderOrUpdateGalleryRow(galleries[id]); // cria/atualiza o elemento HTML
 
             // Para novas galerias, inicia o listener de fotos
             if (change.type === 'added' && !galleryListeners[id]) {
@@ -1052,10 +1053,18 @@
           }
         });
 
+        // PASSO 3: Re-renderiza todas as galerias em ordem (campo "order", crescente)
+        // Ordena no cliente para evitar índice composto no Firestore
+        const container = document.getElementById('galleriesContainer');
+        const sorted = Object.values(galleries).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        sorted.forEach(g => renderOrUpdateGalleryRow(g));
+
         updatePageState(); // atualiza contador e estado vazio
         hideLoading();     // remove o overlay de carregamento
       }, (err) => {
         console.error('Galleries listener error:', err);
+        // Mesmo em caso de erro, exibe os placeholders (garante UX mínima)
+        updatePageState();
         hideLoading();
       });
     }
