@@ -454,11 +454,6 @@
     ══════════════════════════════════════════════════════
   -->
   <script type="module">
-    // ─── Aplicar cor de fundo cacheada imediatamente (evita flash de cor padrão) ─
-    (function() {
-      const cached = localStorage.getItem('gal_bg');
-      if (cached) document.documentElement.style.setProperty('--bg-main', cached);
-    })();
     import { auth, db } from './js/firebase-config.js';
     import {
       onAuthStateChanged,  // observa estado de login
@@ -469,6 +464,13 @@
       getDocs, getDoc, doc,
       orderBy, limit          // queries no Firestore
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // ─── Aplicar cor de fundo cacheada imediatamente (evita flash de cor padrão) ─
+    // Nota: deve ficar APÓS os imports (regra de módulos ES6)
+    (function() {
+      const cached = localStorage.getItem('gal_bg');
+      if (cached) document.documentElement.style.setProperty('--bg-main', cached);
+    })();
 
     // ─── Estado ─────────────────────────────────────────────────────────
     let loggedUser = null;  // usuário Firebase autenticado

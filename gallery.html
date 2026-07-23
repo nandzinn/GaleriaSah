@@ -913,11 +913,6 @@
        JAVASCRIPT — LÓGICA PRINCIPAL
   ══════════════════════════════════════════════════════════════════ -->
   <script type="module">
-    // ─── Aplicar cor de fundo cacheada imediatamente (evita flash de cor padrão) ─
-    (function() {
-      const cached = localStorage.getItem('gal_bg');
-      if (cached) document.documentElement.style.setProperty('--bg-main', cached);
-    })();
     // Importa serviços Firebase
     import { auth, db, storage } from './js/firebase-config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -930,6 +925,13 @@
       increment, limit
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    // ─── Aplicar cor de fundo cacheada imediatamente (evita flash de cor padrão) ─
+    // Nota: deve ficar APÓS os imports (regra de módulos ES6)
+    (function() {
+      const cached = localStorage.getItem('gal_bg');
+      if (cached) document.documentElement.style.setProperty('--bg-main', cached);
+    })();
 
     // ─── Estado Global da Aplicação ─────────────────────────────────────
     let currentUser      = null;  // usuário Firebase autenticado
