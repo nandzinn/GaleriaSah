@@ -35,6 +35,22 @@ Cada versão usa estas seções para classificar as alterações:
   - Cache em `localStorage` com chave `gal_bg` para aplicação instantânea (sem flash) ao navegar entre páginas
   - Aplicado em: `gallery.html`, `explore.html`, `public_profile.html` (cor do visitante logado)
 
+### Corrigido
+- **Bug 1 — IIFE antes de `import` em módulos ES6** (`gallery.html`, `explore.html`, `public_profile.html`):
+  - **Causa**: ao adicionar o bloco `(function(){ localStorage... })()` de aplicação da cor de fundo, o código foi posicionado *antes* das declarações `import` dentro do `<script type="module">`. Em módulos ES6, os `import` precisam ser as primeiras instruções — código executável antes deles é uma violação de sintaxe.
+  - **Efeito**: o browser rejeitava o módulo inteiro silenciosamente. O Firebase nunca era inicializado, `onAuthStateChanged` nunca era registrado, e a tela ficava travada mostrando "Carregando…" indefinidamente.
+  - **Correção**: mover o bloco IIFE para *depois* de todos os `import`.
+
+- **Bug 2 — Query Firestore com `where` + `orderBy` sem índice composto** (`gallery.html` — `initGalleries` e `listenPhotos`):
+  - **Causa**: as queries `where('ownerId') + orderBy('order')` (galerias) e `where('galleryId') + orderBy('order')` (fotos) exigem um **índice composto** no Firebase Console que não havia sido criado.
+  - **Efeito**: o Firestore recusava as queries e caia no error handler. Como resultado, nenhuma galeria era carregada e os cards placeholder com `+` (que deveriam aparecer sempre) não eram exibidos.
+  - **Correção**: remover o `orderBy` das queries do Firestore e ordenar os resultados no cliente (`.sort((a, b) => a.order - b.order)`). Resultado final idêntico, zero dependência de índice composto.
+
+- **Bug 3 — Error handler de `initGalleries` não chamava `updatePageState()`** (`gallery.html`):
+  - **Causa**: o bloco `catch` do `onSnapshot` chamava apenas `hideLoading()`, omitindo `updatePageState()`.
+  - **Efeito**: mesmo que o overlay de loading sumisse, os placeholders nunca apareciam porque `renderPlaceholders()` só é chamado dentro de `updatePageState()`.
+  - **Correção**: adicionar `updatePageState()` antes de `hideLoading()` no error handler, garantindo que os 3 cards com `+` apareçam sempre, mesmo em caso de erro.
+
 ---
 
 ## [1.2.0] - 2026-07-22

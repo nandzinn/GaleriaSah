@@ -137,62 +137,119 @@
 
 ---
 
-## 🔴 O que ficou travado em `public_profile.html` — Ler antes de continuar
+## 🐛 Bugs encontrados e corrigidos na sessão de 23/07/2026
 
-### O que estava em andamento
+> Detectados ao testar ao vivo após o commit da cor de fundo. Três bugs em cadeia travavam a tela principal.
 
-Na sessão de 23/07 o plano era aplicar a cor de fundo personalizada em **todas** as páginas autenticadas. O `public_profile.html` recebeu apenas a parte mais simples: leitura do cache `localStorage` no carregamento inicial.
+---
 
-**O que NÃO foi feito e ficou pendente:**
+### Bug 1 — IIFE antes de `import` em módulos ES6
 
-1. **`public_profile.html` não aplica a cor do dono do perfil visitado**
-   - Hoje só aplicamos a cor do **visitante** (via `localStorage`).
-   - O dono do perfil tem a cor salva em `users/{uid}.bgColor` (campo no Firestore).
-   - **Decisão a tomar**: ao visitar o perfil de alguém, o fundo deve ser:
-     - A) A cor do **visitante** (implementação atual — consistente com a "identidade" do visitante)
-     - B) A cor do **dono do perfil** (imersivo — o visitante "entra" no mundo visual do dono)
-   - Hoje ficou com a opção A por ser mais simples. A opção B exige buscar o `bgColor` do dono junto com o perfil.
+**Arquivos afetados**: `gallery.html`, `explore.html`, `public_profile.html`
 
-2. **`auth.html` e `onboarding.html` não receberam a cor de fundo**
-   - Essas páginas são pré-autenticação e não têm acesso ao Firebase ainda.
-   - Mas o `localStorage` já existe nesse ponto — tecnicamente seria possível aplicar.
-   - Decidir: vale aplicar o `gal_bg` nessas duas páginas também?
+**O que acontecia**: a tela ficava presa mostrando o spinner de carregamento indefinidamente. O header aparecia, mas o conteúdo nunca carregava.
 
-3. **CSS em `public_profile.html` não tem os estilos do seletor de cor**
-   - A seção de `#bgPicker`, `.swatch`, `.swatch-custom`, etc. só existe em `profile.html`.
-   - `public_profile.html` não tem esse componente visual (correto — o visitante não edita cores aqui).
-   - Mas se no futuro quisermos mostrar a cor do dono (opção B acima), precisaremos de um tratamento CSS mínimo.
+**Causa técnica**: ao inserir o bloco de cor de fundo cacheada (`(function(){ localStorage... })()`), ele foi colocado **antes das declarações `import`** dentro do `<script type="module">`.
 
-### Por que travou / não concluiu
+Em módulos ES6, as declarações `import` **precisam ser as primeiras instruções do módulo** — qualquer código executável antes delas é uma **violação de sintaxe**. O browser rejeita o módulo inteiro silenciosamente (sem mensagem óbvia), então o Firebase nunca era inicializado e a tela nunca saía do loading.
 
-A sessão chegou ao fim natural do tempo disponível. Não houve bug ou bloqueio técnico — foi simplesmente o escopo do dia. O `public_profile.html` está **funcional** com a implementação atual (aplica a cor do visitante via `localStorage`).
+```js
+// ❌ ERRADO — como estava
+<script type="module">
+    (function() { localStorage... })();  // ← IIFE antes do import = ERRO
+    import { auth } from './firebase-config.js';
+```
+
+```js
+// ✅ CORRETO — como ficou
+<script type="module">
+    import { auth } from './firebase-config.js';
+    // ... outros imports ...
+    (function() { localStorage... })();  // ← IIFE depois dos imports = OK
+```
+
+**Regra para o futuro**: em `<script type="module">`, **nunca coloque código executável antes dos `import`**.
+
+---
+
+### Bug 2 — Query Firestore com `where` + `orderBy` sem índice composto
+
+**Arquivo afetado**: `gallery.html` — funções `initGalleries()` e `listenPhotos()`
+
+**O que acontecia**: mesmo após corrigir o Bug 1, a galeria continuava em branco. Nenhum card aparecia — nem as galerias reais, nem os 3 placeholders com `+`.
+
+**Causa técnica**: as queries do Firestore usavam `where` + `orderBy` juntos:
+
+```js
+// initGalleries — galerias
+query(galleriesRef,
+  where('ownerId', '==', uid),
+  orderBy('order', 'asc')   // ← exige índice composto
+);
+
+// listenPhotos — fotos por galeria
+query(collection(db, 'photos'),
+  where('galleryId', '==', id),
+  orderBy('order', 'asc')   // ← exige índice composto
+);
+```
+
+O Firestore exige um **índice composto** (criado manualmente no Firebase Console) para qualquer query que combine `where` + `orderBy` em campos diferentes. Como o índice não existia, o Firestore recusava as queries → caía no error handler → nenhuma galeria era carregada.
+
+Este é o **mesmo bug** que já havia acontecido no `public_profile.html` (sessão de 20/07). A solução foi a mesma: remover o `orderBy` da query e ordenar no cliente.
+
+```js
+// ✅ CORRETO — sem orderBy na query, ordena no cliente
+query(galleriesRef, where('ownerId', '==', uid))
+// depois: .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+```
+
+**Regra para o futuro**: **nunca combinar `where` + `orderBy` em campos diferentes** no Firestore sem criar o índice composto no Firebase Console. Prefira sempre ordenar no cliente.
+
+---
+
+### Bug 3 — Error handler de `initGalleries` não chamava `updatePageState()`
+
+**Arquivo afetado**: `gallery.html`
+
+**O que acontecia**: mesmo quando havia um erro no Firestore, o loading desaparecia mas a tela ficava completamente vazia — os 3 cards placeholder com `+` não apareciam.
+
+**Causa técnica**: o error handler do `onSnapshot` chamava apenas `hideLoading()`, omitindo `updatePageState()`:
+
+```js
+// ❌ ANTES
+}, (err) => {
+  console.error('Galleries listener error:', err);
+  hideLoading();   // ← os placeholders nunca aparecem!
+});
+```
+
+`renderPlaceholders()` é chamado dentro de `updatePageState()`. Sem essa chamada, o container ficava vazio.
+
+```js
+// ✅ DEPOIS
+}, (err) => {
+  console.error('Galleries listener error:', err);
+  updatePageState();  // ← garante que os 3 placeholders apareçam sempre
+  hideLoading();
+});
+```
+
+**Regra para o futuro**: o error handler de `initGalleries` **sempre** deve chamar `updatePageState()` antes de `hideLoading()`.
 
 ---
 
 ## 📌 Para a próxima sessão — começar aqui
 
-### 🔜 Retomar o `public_profile.html` — decisão pendente
-
-Antes de escrever código, decidir:
-
-> **Ao visitar o perfil de outro usuário, qual cor de fundo deve ser exibida?**
-> - **Opção A** (atual): cor do visitante (consistente, já implementado)
-> - **Opção B** (imersiva): cor do dono do perfil (requer buscar `bgColor` do dono no Firestore)
-
-Se escolher a **Opção B**, adicionar em `public_profile.html`, na função que carrega o perfil do dono:
-```js
-// Após buscar o doc do dono (userDoc.data())
-const ownerBg = userData.bgColor || '#070d1f';
-document.documentElement.style.setProperty('--bg-main', ownerBg);
-```
-
 ### 🔜 Próximas features da v1.2.0 — conforme ROADMAP
 
-Ver `docs/ROADMAP.md` para a lista completa. As próximas features sugeridas são:
+A galeria está **totalmente funcional**. Os 3 bugs foram resolvidos e verificados ao vivo. Próximas features:
 
 1. **Busca de usuários** — campo de busca por username na navbar/explore
 2. **Feed de atividade** — timeline com curtidas e novos seguidores
 3. **Notificações in-app** — toast/badge quando alguém curte ou segue
+
+Ver `docs/ROADMAP.md` para a lista completa.
 
 ---
 
@@ -201,6 +258,8 @@ Ver `docs/ROADMAP.md` para a lista completa. As próximas features sugeridas sã
 - **Documentar cada alteração** no `CHANGELOG.md` antes de commitar
 - **Comentar cada bloco de código** em português
 - **Atualizar este arquivo** ao final de cada sessão com o resumo e os próximos passos
+- ⚠️ **Em módulos ES6**: nunca colocar código executável antes dos `import`
+- ⚠️ **No Firestore**: nunca combinar `where` + `orderBy` sem índice composto — preferir ordenar no cliente
 
 ---
 
