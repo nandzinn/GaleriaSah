@@ -1199,15 +1199,18 @@
     // Um listener por galeria. Atualiza o carrossel quando fotos são
     // adicionadas, editadas ou removidas.
     function listenPhotos(galleryId) {
+      // NOTA: sem orderBy aqui — evita exigir índice composto no Firebase.
+      // A ordenação pelo campo "order" é feita no cliente após receber os dados.
       const q = query(
         collection(db, 'photos'),
-        where('galleryId', '==', galleryId),
-        orderBy('order', 'asc') // mantém a ordem de inserção
+        where('galleryId', '==', galleryId)
       );
       // Salva a função de cancelamento para usar no logout
       galleryListeners[galleryId] = onSnapshot(q, (snap) => {
-        // Converte os documentos Firestore em objetos JS simples
-        galleryPhotos[galleryId] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Converte os documentos Firestore em objetos JS simples e ordena no cliente
+        galleryPhotos[galleryId] = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         renderPhotos(galleryId); // re-renderiza o carrossel
       });
     }
