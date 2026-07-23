@@ -1,4 +1,4 @@
-# 💙 Galeria da Sah
+﻿# 💙 Galeria Online
 
 Uma galeria de fotos interativa no estilo Netflix, feita com HTML, CSS e JavaScript puro — com autenticação Firebase, perfil de usuário e experiência premium.
 
@@ -34,10 +34,10 @@ Galeria_sah/
 
 ## 🚀 Como publicar no GitHub Pages
 
-1. Crie um repositório no GitHub (ex: `GaleriaSah`)
+1. Crie um repositório no GitHub (ex: `GaleriaOnline`)
 2. Faça o push de todos os arquivos via Git
 3. Vá em **Settings → Pages → Branch: master → / (root)**
-4. Aguarde ~1 min — o link ficará: `https://nandzinn.github.io/GaleriaSah/`
+4. Aguarde ~1 min — o link ficará: `https://nandzinn.github.io/GaleriaOnline/`
 
 > 📖 Veja a pasta `docs/` para guias detalhados de personalização.
 

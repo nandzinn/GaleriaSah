@@ -1,4 +1,4 @@
-# 🗺️ Roadmap — Galeria da Sah
+﻿# 🗺️ Roadmap — Galeria Online
 
 > Baseado na pesquisa de mercado (37 respostas, jul/2026).
 > Meta: lançamento completo em **Dezembro 2026**.

@@ -1,6 +1,6 @@
 {
-  "name": "Galeria da Sah",
-  "short_name": "Galeria",
+  "name": "Galeria Online",
+  "short_name": "Galeria Online",
   "description": "Organize e compartilhe suas fotos em galerias públicas ou privadas.",
   "start_url": "/index.html",
   "display": "standalone",

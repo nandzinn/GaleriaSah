@@ -1,4 +1,4 @@
-# Changelog — Galeria Multi-Usuário
+﻿# Changelog — Galeria Multi-Usuário
 
 Todas as mudanças notáveis deste projeto serão documentadas aqui.
 
@@ -71,7 +71,7 @@ Cada versão usa estas seções para classificar as alterações:
   - Formatação de data/hora relativa (ex: "há 5 min").
   - Exclusão de comentários restrita ao autor do comentário ou ao dono do perfil visitado.
 - **SEO** — meta tags completas em todos os 6 arquivos HTML (`index.html`, `auth.html`, `onboarding.html`, `profile.html`, `gallery.html`, `public_profile.html`):
-  - `<title>` descritivo com nome do app ("Galeria da Sah") em cada página
+  - `<title>` descritivo com nome do app ("Galeria Online") em cada página
   - `<meta name="description">` com texto único por página
   - `<meta name="robots">`: `noindex, nofollow` para páginas privadas; `index, follow` para `public_profile.html`
   - `<meta name="theme-color" content="#070d1f">` — cor da barra do navegador mobile
