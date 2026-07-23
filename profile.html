@@ -267,6 +267,44 @@
     /* Linha separadora horizontal */
     .section-divider { height: 1px; background: rgba(var(--rgb-primary),.08); margin: 22px 0; }
 
+    /* ═══ SELETOR DE COR DE FUNDO ═════════════════════════════════════
+       Grade de swatches + botão de cor personalizada.
+    ═══════════════════════════════════════════════════════════════════ */
+    .bg-picker {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      margin-top: 6px;
+    }
+    /* Cada swatch: círculo clicável com a cor de fundo */
+    .swatch {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer; transition: transform .18s, border-color .18s, box-shadow .18s;
+      position: relative; flex-shrink: 0;
+      outline: none;
+    }
+    .swatch:hover { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(var(--rgb-primary),.3); }
+    /* Anel azul ao redor do swatch selecionado */
+    .swatch.active {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(var(--rgb-primary),.5);
+      transform: scale(1.12);
+    }
+    /* Swatch especial: ícone de conta-gotas para abrir o color picker nativo */
+    .swatch-custom {
+      background: rgba(var(--rgb-primary),.08);
+      border-color: rgba(var(--rgb-primary),.2);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .swatch-custom .material-symbols-outlined { font-size: 17px; color: var(--text-dim); pointer-events: none; }
+    .swatch-custom:hover { border-color: rgba(var(--rgb-primary),.5); background: rgba(var(--rgb-primary),.14); }
+    /* Preview badge: pequena bolinha que mostra a cor ativa no label do campo */
+    .bg-preview-dot {
+      display: inline-block; width: 12px; height: 12px;
+      border-radius: 50%; border: 1.5px solid rgba(var(--rgb-primary),.3);
+      vertical-align: middle; margin-left: 6px; transition: background .2s;
+    }
+
     /* ═══ BOTÕES ══════════════════════════════════════════════════════ */
 
     /* Botão principal (Salvar alterações) */
@@ -500,6 +538,40 @@
           </div>
         </div>
 
+        <!-- ── Aparência ── -->
+        <div class="section-divider"></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">Aparência</div>
+
+        <!-- Seletor de cor de fundo -->
+        <div class="form-group">
+          <!-- Label com bolinha de preview da cor atual -->
+          <label for="editBgColor">
+            Cor de fundo
+            <span class="bg-preview-dot" id="bgPreviewDot"></span>
+          </label>
+
+          <!-- Grade de swatches pré-definidas -->
+          <div class="bg-picker" id="bgPicker">
+            <!-- 8 temas escuros curados -->
+            <button type="button" class="swatch" data-color="#070d1f" style="background:#070d1f" title="Navy (padrão)"></button>
+            <button type="button" class="swatch" data-color="#0d0d1f" style="background:#0d0d1f" title="Midnight Blue"></button>
+            <button type="button" class="swatch" data-color="#0f0d1e" style="background:#0f0d1e" title="Deep Purple"></button>
+            <button type="button" class="swatch" data-color="#0a1a0f" style="background:#0a1a0f" title="Dark Forest"></button>
+            <button type="button" class="swatch" data-color="#1a0a0a" style="background:#1a0a0a" title="Dark Crimson"></button>
+            <button type="button" class="swatch" data-color="#0d120d" style="background:#0d120d" title="Midnight Green"></button>
+            <button type="button" class="swatch" data-color="#141414" style="background:#141414" title="Charcoal"></button>
+            <button type="button" class="swatch" data-color="#0c0c0c" style="background:#0c0c0c" title="Pure Dark"></button>
+
+            <!-- Botão abre o color picker nativo do navegador -->
+            <label class="swatch swatch-custom" title="Escolher cor personalizada">
+              <span class="material-symbols-outlined">colorize</span>
+              <!-- Input de cor nativo (invisível, posicionado atrás do ícone) -->
+              <input type="color" id="editBgColor" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;padding:0">
+            </label>
+          </div>
+          <div class="hint">Aplicada em todas as páginas da Galeria.</div>
+        </div>
+
         <!-- Botão de salvar com spinner -->
         <button class="btn-primary" id="btnSaveProfile" onclick="saveProfile()">
           <span id="saveBtnText">Salvar alterações</span>
@@ -536,6 +608,12 @@
     ══════════════════════════════════════════════════════
   -->
   <script type="module">
+    // ─── Aplicar cor de fundo cacheada imediatamente (evita flash de cor padrão) ─
+    // Lê do localStorage antes mesmo do Firebase carregar
+    (function() {
+      const cached = localStorage.getItem('gal_bg');
+      if (cached) document.documentElement.style.setProperty('--bg-main', cached);
+    })();
     import { auth, db, storage } from './js/firebase-config.js';
     import {
       onAuthStateChanged,     // observa mudança de estado de login
@@ -561,6 +639,53 @@
     let usernameOk       = true;  // true se o username é válido para salvar
     let usernameTimer    = null;  // timer para debounce da verificação
     let originalUsername = '';    // username atual (para não precisar verificar se não mudou)
+
+    // ─── Cor de Fundo ────────────────────────────────────────────────────
+    // Paleta de swatches pré-definidos (deve coincidir com o HTML)
+    const BG_PRESETS = ['#070d1f','#0d0d1f','#0f0d1e','#0a1a0f','#1a0a0a','#0d120d','#141414','#0c0c0c'];
+    const DEFAULT_BG = '#070d1f';
+
+    // Aplica a cor de fundo: muda a CSS var + dot de preview + marca swatch ativo
+    // Se save=true, persiste no localStorage
+    function applyBgColor(hex, save = false) {
+      if (!hex) hex = DEFAULT_BG;
+      // Atualiza a variável CSS em toda a página
+      document.documentElement.style.setProperty('--bg-main', hex);
+      // Atualiza o header semi-transparente para usar a nova cor de base
+      document.querySelectorAll('.app-header').forEach(el => {
+        // Converte hex para rgb para manter a transparência
+        const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+        el.style.background = `rgba(${r},${g},${b},0.85)`;
+      });
+      // Bolinha de preview no label
+      const dot = document.getElementById('bgPreviewDot');
+      if (dot) dot.style.background = hex;
+      // Atualiza o swatch ativo
+      document.querySelectorAll('#bgPicker .swatch').forEach(s => {
+        s.classList.toggle('active', s.dataset.color?.toLowerCase() === hex.toLowerCase());
+      });
+      // Marca o custom picker como ativo se não for nenhum preset
+      const customLabel = document.querySelector('.swatch-custom');
+      if (customLabel) {
+        const isPreset = BG_PRESETS.includes(hex.toLowerCase());
+        customLabel.classList.toggle('active', !isPreset);
+      }
+      // Atualiza o input de cor nativo para refletir a cor atual
+      const colorInput = document.getElementById('editBgColor');
+      if (colorInput) colorInput.value = hex;
+      // Persiste no localStorage se solicitado
+      if (save) localStorage.setItem('gal_bg', hex);
+    }
+
+    // ─── Eventos dos Swatches ────────────────────────────────────────────
+    // Adiciona listener de clique em cada swatch pré-definido
+    document.getElementById('bgPicker')?.querySelectorAll('.swatch[data-color]').forEach(btn => {
+      btn.addEventListener('click', () => applyBgColor(btn.dataset.color, false));
+    });
+    // Color picker nativo: atualiza em tempo real enquanto o usuário arrasta
+    document.getElementById('editBgColor')?.addEventListener('input', (e) => {
+      applyBgColor(e.target.value, false);
+    });
 
     // ─── Auth Guard ──────────────────────────────────────────────────────
     // Redireciona para auth se não estiver logado ou e-mail não verificado
@@ -612,6 +737,11 @@
       document.getElementById('editBirthDate').value            = p.birthDate || '';
       document.getElementById('editPrivateProfile').checked     = isPrivate;
       document.getElementById('bioCount').textContent           = `${(p.bio||'').length} / 200`;
+
+      // Cor de fundo: aplica a cor salva no Firestore (ou padrão) e sincroniza localStorage
+      const savedBg = p.bgColor || DEFAULT_BG;
+      applyBgColor(savedBg, false);
+      localStorage.setItem('gal_bg', savedBg); // sincroniza cache local com Firestore
 
       // Data de membro: converte timestamp Firebase para data legível
       // createdAt.seconds é o Unix timestamp (segundos desde 1970)
@@ -722,6 +852,7 @@
         const bio       = document.getElementById('editBio').value.trim();
         const birthDate = document.getElementById('editBirthDate').value;
         const isPrivate = document.getElementById('editPrivateProfile').checked;
+        const bgColor   = document.getElementById('editBgColor').value || DEFAULT_BG;
 
         // Atualiza apenas os campos específicos (updateDoc em vez de setDoc)
         // Isso preserva outros campos como createdAt, galleriesCount, etc.
@@ -730,12 +861,16 @@
           bio,
           birthDate: birthDate || null,
           isProfilePrivate: isPrivate,
-          updatedAt: serverTimestamp(), // atualiza o timestamp
+          bgColor,                       // persiste cor de fundo no Firestore
+          updatedAt: serverTimestamp(),  // atualiza o timestamp
         });
+
+        // Persiste cor no localStorage (fast-load nas outras páginas)
+        applyBgColor(bgColor, true);
 
         // Atualiza o estado local (evita buscar o documento novamente)
         originalUsername = username;
-        userProfile = { ...userProfile, username, bio, birthDate, isProfilePrivate: isPrivate };
+        userProfile = { ...userProfile, username, bio, birthDate, isProfilePrivate: isPrivate, bgColor };
         renderProfile();       // re-renderiza a visualização
         toggleEditMode(false); // fecha o formulário
         showSuccess('Perfil atualizado!');

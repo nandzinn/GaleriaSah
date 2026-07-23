@@ -110,13 +110,87 @@
 
 ---
 
+## ✅ Sessão de 23/07/2026 — Cor de fundo personalizável
+
+### O que foi implementado
+
+| Funcionalidade | Arquivo | Status |
+|---|---|---|
+| Seção "Aparência" no formulário de edição do perfil | `profile.html` | ✅ Feito |
+| 8 swatches pré-definidos curados | `profile.html` | ✅ Feito |
+| Color picker nativo do navegador (cor livre) | `profile.html` | ✅ Feito |
+| Preview em tempo real da cor ao hover/selecionar | `profile.html` | ✅ Feito |
+| Bolinha de preview ao lado do label "Cor de fundo" | `profile.html` | ✅ Feito |
+| Cor salva em `users/{uid}.bgColor` no Firestore | `profile.html` | ✅ Feito |
+| Cache `gal_bg` no `localStorage` (sem flash entre páginas) | todos | ✅ Feito |
+| Aplicar cor ao carregar: `gallery.html` | `gallery.html` | ✅ Feito |
+| Aplicar cor ao carregar: `explore.html` | `explore.html` | ✅ Feito |
+| Aplicar cor ao carregar: `public_profile.html` (visitante) | `public_profile.html` | ✅ Feito |
+
+### Detalhes técnicos importantes
+
+- **Campo Firestore**: `users/{uid}.bgColor` → string hex (ex: `#070d1f`)
+- **localStorage key**: `gal_bg` — lida antes do Firebase carregar para aplicação instantânea (sem flash)
+- **Função**: `applyBgColor(hex, save)` no `profile.html` — aplica na CSS var `--bg-main`, atualiza o header, o preview dot e os swatches
+- **`public_profile.html`**: aplica a cor do **visitante logado** (não do dono do perfil), lida do `localStorage`
+- **Swatches pré-definidos**: `#070d1f` (Navy/padrão), `#0d0d1f`, `#0f0d1e`, `#0a1a0f`, `#1a0a0a`, `#0d120d`, `#141414`, `#0c0c0c`
+
+---
+
+## 🔴 O que ficou travado em `public_profile.html` — Ler antes de continuar
+
+### O que estava em andamento
+
+Na sessão de 23/07 o plano era aplicar a cor de fundo personalizada em **todas** as páginas autenticadas. O `public_profile.html` recebeu apenas a parte mais simples: leitura do cache `localStorage` no carregamento inicial.
+
+**O que NÃO foi feito e ficou pendente:**
+
+1. **`public_profile.html` não aplica a cor do dono do perfil visitado**
+   - Hoje só aplicamos a cor do **visitante** (via `localStorage`).
+   - O dono do perfil tem a cor salva em `users/{uid}.bgColor` (campo no Firestore).
+   - **Decisão a tomar**: ao visitar o perfil de alguém, o fundo deve ser:
+     - A) A cor do **visitante** (implementação atual — consistente com a "identidade" do visitante)
+     - B) A cor do **dono do perfil** (imersivo — o visitante "entra" no mundo visual do dono)
+   - Hoje ficou com a opção A por ser mais simples. A opção B exige buscar o `bgColor` do dono junto com o perfil.
+
+2. **`auth.html` e `onboarding.html` não receberam a cor de fundo**
+   - Essas páginas são pré-autenticação e não têm acesso ao Firebase ainda.
+   - Mas o `localStorage` já existe nesse ponto — tecnicamente seria possível aplicar.
+   - Decidir: vale aplicar o `gal_bg` nessas duas páginas também?
+
+3. **CSS em `public_profile.html` não tem os estilos do seletor de cor**
+   - A seção de `#bgPicker`, `.swatch`, `.swatch-custom`, etc. só existe em `profile.html`.
+   - `public_profile.html` não tem esse componente visual (correto — o visitante não edita cores aqui).
+   - Mas se no futuro quisermos mostrar a cor do dono (opção B acima), precisaremos de um tratamento CSS mínimo.
+
+### Por que travou / não concluiu
+
+A sessão chegou ao fim natural do tempo disponível. Não houve bug ou bloqueio técnico — foi simplesmente o escopo do dia. O `public_profile.html` está **funcional** com a implementação atual (aplica a cor do visitante via `localStorage`).
+
+---
+
 ## 📌 Para a próxima sessão — começar aqui
 
-### 🔜 Próxima etapa da v1.2.0 — conforme ROADMAP
+### 🔜 Retomar o `public_profile.html` — decisão pendente
+
+Antes de escrever código, decidir:
+
+> **Ao visitar o perfil de outro usuário, qual cor de fundo deve ser exibida?**
+> - **Opção A** (atual): cor do visitante (consistente, já implementado)
+> - **Opção B** (imersiva): cor do dono do perfil (requer buscar `bgColor` do dono no Firestore)
+
+Se escolher a **Opção B**, adicionar em `public_profile.html`, na função que carrega o perfil do dono:
+```js
+// Após buscar o doc do dono (userDoc.data())
+const ownerBg = userData.bgColor || '#070d1f';
+document.documentElement.style.setProperty('--bg-main', ownerBg);
+```
+
+### 🔜 Próximas features da v1.2.0 — conforme ROADMAP
 
 Ver `docs/ROADMAP.md` para a lista completa. As próximas features sugeridas são:
 
-1. **Busca de usuários** — campo de busca por username na navbar
+1. **Busca de usuários** — campo de busca por username na navbar/explore
 2. **Feed de atividade** — timeline com curtidas e novos seguidores
 3. **Notificações in-app** — toast/badge quando alguém curte ou segue
 
@@ -130,4 +204,4 @@ Ver `docs/ROADMAP.md` para a lista completa. As próximas features sugeridas sã
 
 ---
 
-*Sessão de 22/07/2026 encerrada. Até a próxima! 💙*
+*Sessão de 23/07/2026 encerrada. Até a próxima! 💙*

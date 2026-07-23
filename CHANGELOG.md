@@ -22,6 +22,21 @@ Cada versão usa estas seções para classificar as alterações:
 
 ---
 
+## [Não lançado] — 2026-07-23
+
+### Adicionado
+- **Cor de fundo personalizável** (`profile.html` + todas as páginas autenticadas):
+  - Nova seção **"Aparência"** no formulário de edição do perfil
+  - 8 swatches pré-definidos curados (Navy, Midnight Blue, Deep Purple, Dark Forest, Dark Crimson, Midnight Green, Charcoal, Pure Dark)
+  - Botão com ícone conta-gotas abre o color picker nativo do navegador para cor totalmente livre
+  - Preview em tempo real da cor enquanto o usuário hover/seleciona (sem precisar salvar)
+  - Bolinha de preview ao lado do label "Cor de fundo" indicando a cor ativa
+  - Cor salva em `users/{uid}.bgColor` no Firestore
+  - Cache em `localStorage` com chave `gal_bg` para aplicação instantânea (sem flash) ao navegar entre páginas
+  - Aplicado em: `gallery.html`, `explore.html`, `public_profile.html` (cor do visitante logado)
+
+---
+
 ## [1.2.0] - 2026-07-22
 
 ### Adicionado
